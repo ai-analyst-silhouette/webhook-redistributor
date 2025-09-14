@@ -337,6 +337,57 @@ Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
 
 ## 🆘 Suporte
 
+## 🐳 **Docker Hub e Deploy**
+
+### **Imagens Disponíveis**
+- **Backend**: `ai-analyst-silhouette/webhook-redistributor-backend:latest`
+- **Frontend**: `ai-analyst-silhouette/webhook-redistributor-frontend:latest`
+
+### **Deploy Rápido no Servidor**
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/ai-analyst-silhouette/webhook-redistributor.git
+cd webhook-redistributor
+
+# 2. Execute o deploy
+./deploy-server.sh
+```
+
+### **Build e Push para Docker Hub**
+
+```bash
+# 1. Login no Docker Hub
+docker login
+
+# 2. Build e push das imagens
+./build-and-push.sh [version]
+
+# Exemplo com versão específica
+./build-and-push.sh v1.0.0
+```
+
+### **URLs de Acesso**
+- **Frontend**: https://redistribuidor-front.silhouetteexperts.com.br
+- **Backend**: https://redistribuidor-back.silhouetteexperts.com.br
+- **Traefik Dashboard**: http://seu-servidor:8080
+
+### **Comandos Úteis**
+
+```bash
+# Verificar status dos serviços
+docker stack services webhook-redistributor
+
+# Ver logs dos serviços
+docker stack ps webhook-redistributor
+
+# Remover o stack
+docker stack rm webhook-redistributor
+
+# Atualizar o stack
+docker stack deploy -c docker-compose.yml webhook-redistributor
+```
+
 Para suporte e dúvidas:
 - Abra uma issue no GitHub
 - Verifique a documentação da API
