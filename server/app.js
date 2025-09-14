@@ -64,7 +64,13 @@ const startServer = async () => {
     // Start server
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Health check available at http://localhost:${PORT}/health`);
+      
+      // Show appropriate health check URL based on environment
+      const healthUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://redistribuidor-back.silhouetteexperts.com.br/health'
+        : `http://localhost:${PORT}/health`;
+      
+      console.log(`Health check available at ${healthUrl}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
