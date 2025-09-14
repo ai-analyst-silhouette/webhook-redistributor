@@ -3,7 +3,7 @@ const config = {
   // URL da API baseada no ambiente
   apiUrl: process.env.REACT_APP_API_URL || 
     (process.env.NODE_ENV === 'production' 
-      ? 'https://redistribuidor-back.silhouetteexperts.com.br' 
+      ? 'http://localhost:3002'  // Fallback para localhost em produção
       : 'http://localhost:3002'),
   
   // Timeout para requisições
