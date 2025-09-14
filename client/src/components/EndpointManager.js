@@ -94,6 +94,28 @@ const EndpointManager = ({ onMessage }) => {
   };
 
   const handleDeleteEndpoint = async (endpointId) => {
+    const endpoint = endpoints.find(ep => ep.id === endpointId);
+    if (!endpoint) return;
+
+    // Check if endpoint has active destinations
+    if (endpoint.destinations?.active > 0) {
+      const confirmDelete = window.confirm(
+        `O endpoint "${endpoint.name}" tem ${endpoint.destinations.active} destino(s) ativo(s). ` +
+        `Para deletar o endpoint, você precisa primeiro remover ou desativar todos os destinos. ` +
+        `Deseja continuar e ver os destinos?`
+      );
+      
+      if (confirmDelete) {
+        handleViewDestinations(endpoint);
+      }
+      return;
+    }
+
+    // Confirm deletion
+    if (!window.confirm(`Tem certeza que deseja deletar o endpoint "${endpoint.name}"?`)) {
+      return;
+    }
+
     try {
       const response = await api.delete(`/api/endpoints/${endpointId}`);
       
@@ -253,6 +275,14 @@ const EndpointManager = ({ onMessage }) => {
               <p>
                 <strong>Destinos:</strong> {viewingDestinations.destinations?.active || 0} ativos de {viewingDestinations.destinations?.total || 0} total
               </p>
+              
+              {viewingDestinations.destinations?.active > 0 && (
+                <div className="warning-box">
+                  <p>⚠️ Este endpoint tem destinos ativos. Para deletar o endpoint, você precisa primeiro remover ou desativar todos os destinos.</p>
+                  <p>Vá para a seção "Destinos" para gerenciar os destinos deste endpoint.</p>
+                </div>
+              )}
+              
               <div className="modal-actions">
                 <button
                   className="btn btn-primary"
@@ -263,6 +293,17 @@ const EndpointManager = ({ onMessage }) => {
                 >
                   👁️ Ver Destinos Detalhados
                 </button>
+                {viewingDestinations.destinations?.active === 0 && (
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      setViewingDestinations(null);
+                      handleDeleteEndpoint(viewingDestinations.id);
+                    }}
+                  >
+                    🗑️ Deletar Endpoint
+                  </button>
+                )}
               </div>
             </div>
           </div>
