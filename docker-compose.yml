@@ -57,4 +57,5 @@ volumes:
 
 networks:
   webhook_network:
-    external: true
+    driver: overlay
+    attachable: true

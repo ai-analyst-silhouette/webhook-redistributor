@@ -15,13 +15,8 @@ if ! docker info | grep -q "Swarm: active"; then
     exit 1
 fi
 
-# Verificar se a rede existe
-if ! docker network ls | grep -q "webhook_network"; then
-    echo "🌐 Creating webhook_network..."
-    docker network create --driver overlay --attachable webhook_network
-else
-    echo "✅ Network webhook_network already exists"
-fi
+# A rede será criada automaticamente pelo Docker Swarm
+echo "🌐 Network webhook_network will be created automatically by Docker Swarm"
 
 # Fazer pull das imagens mais recentes
 echo "📥 Pulling latest images..."
