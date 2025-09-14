@@ -11,8 +11,10 @@ const Settings = ({ onSettingsChange }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    // Get current webhook URL from window location
-    const webhookUrl = `${window.location.protocol}//${window.location.hostname}:3002/api/webhook`;
+    // Get current webhook URL - use backend URL in production, localhost in development
+    const webhookUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://redistribuidor-back.silhouetteexperts.com.br/api/webhook'
+      : 'http://localhost:3002/api/webhook';
     setSettings(prev => ({ ...prev, webhookUrl }));
   }, []);
 

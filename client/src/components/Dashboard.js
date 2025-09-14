@@ -162,7 +162,9 @@ const Dashboard = () => {
       const response = await api.delete(`/api/destinations/${id}`);
       
       if (response.data.success) {
-        setDestinations(prev => prev.filter(dest => dest.id !== id));
+        // Force refresh to ensure UI is updated
+        await fetchDestinations();
+        await fetchEndpoints();
         showMessage('success', 'Destino removido com sucesso!');
       } else {
         throw new Error(response.data.message);
@@ -250,34 +252,22 @@ const Dashboard = () => {
           🔗 Endpoints
         </button>
         <button
+          className={`nav-button ${currentView === 'quick-setup' ? 'active' : ''}`}
+          onClick={() => setCurrentView('quick-setup')}
+        >
+          ⚡ Configuração Rápida
+        </button>
+        <button
           className={`nav-button ${currentView === 'logs' ? 'active' : ''}`}
           onClick={() => setCurrentView('logs')}
         >
           📊 Logs
         </button>
         <button
-          className={`nav-button ${currentView === 'stats' ? 'active' : ''}`}
-          onClick={() => setCurrentView('stats')}
-        >
-          📈 Estatísticas
-        </button>
-        <button
           className={`nav-button ${currentView === 'docs' ? 'active' : ''}`}
           onClick={() => setCurrentView('docs')}
         >
           📚 Documentação
-        </button>
-        <button
-          className={`nav-button ${currentView === 'backup' ? 'active' : ''}`}
-          onClick={() => setCurrentView('backup')}
-        >
-          💾 Backup
-        </button>
-        <button
-          className={`nav-button ${currentView === 'quick-setup' ? 'active' : ''}`}
-          onClick={() => setCurrentView('quick-setup')}
-        >
-          ⚡ Configuração Rápida
         </button>
       </nav>
 
@@ -428,13 +418,21 @@ const Dashboard = () => {
             </div>
 
             <div className="info-section">
-              <h3>ℹ️ How it works</h3>
-              <ul>
-                <li>Webhooks sent to <code>/api/webhook</code> are automatically redistributed to all active destinations</li>
-                <li>Only destinations marked as "Active" will receive webhooks</li>
-                <li>Use the API endpoints to manage destinations</li>
-                <li>Check the logs and statistics above for detailed monitoring</li>
-              </ul>
+              <h3>ℹ️ Como Funciona</h3>
+              <div className="info-cards">
+                <div className="info-card">
+                  <h4>🔗 Endpoint Padrão</h4>
+                  <p>Webhooks enviados para <code>/api/webhook/default</code> são redistribuídos apenas para destinos configurados para o endpoint "Padrão"</p>
+                </div>
+                <div className="info-card">
+                  <h4>🎯 Endpoints Específicos</h4>
+                  <p>Webhooks enviados para <code>/api/webhook/meu-endpoint</code> são redistribuídos apenas para destinos daquele endpoint específico</p>
+                </div>
+                <div className="info-card">
+                  <h4>✅ Status Ativo</h4>
+                  <p>Apenas destinos marcados como "Ativo" receberão webhooks</p>
+                </div>
+              </div>
             </div>
           </>
         )}

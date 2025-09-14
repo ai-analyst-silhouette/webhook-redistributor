@@ -148,7 +148,9 @@ const EndpointForm = ({
 
   const getPreviewUrl = () => {
     if (!formData.slug) return '';
-    return `${window.location.protocol}//${window.location.hostname}:3002/api/webhook/${formData.slug}`;
+    return process.env.NODE_ENV === 'production' 
+      ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.slug}`
+      : `http://localhost:3002/api/webhook/${formData.slug}`;
   };
 
   return (

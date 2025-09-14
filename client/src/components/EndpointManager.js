@@ -245,7 +245,10 @@ const EndpointManager = ({ onMessage }) => {
             </div>
             <div className="modal-content">
               <p>
-                <strong>URL:</strong> {window.location.protocol}//{window.location.hostname}:3002/api/webhook/{viewingDestinations.slug}
+                <strong>URL:</strong> {process.env.NODE_ENV === 'production' 
+                  ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${viewingDestinations.slug}`
+                  : `http://localhost:3002/api/webhook/${viewingDestinations.slug}`
+                }
               </p>
               <p>
                 <strong>Destinos:</strong> {viewingDestinations.destinations?.active || 0} ativos de {viewingDestinations.destinations?.total || 0} total

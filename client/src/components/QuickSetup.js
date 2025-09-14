@@ -204,7 +204,10 @@ const QuickSetup = ({ onComplete, onCancel }) => {
           <span className="slug-prefix">/api/webhook/</span>
         </div>
         <div className="form-help">
-          URL completa: {window.location.protocol}//{window.location.hostname}:3002/api/webhook/{formData.endpointSlug || 'seu-slug'}
+          URL completa: {process.env.NODE_ENV === 'production' 
+            ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.endpointSlug || 'seu-slug'}`
+            : `http://localhost:3002/api/webhook/${formData.endpointSlug || 'seu-slug'}`
+          }
         </div>
       </div>
 
@@ -312,7 +315,10 @@ const QuickSetup = ({ onComplete, onCancel }) => {
           <strong>Endpoint:</strong> {formData.endpointName} ({formData.endpointSlug})
         </div>
         <div className="summary-item">
-          <strong>URL:</strong> {window.location.protocol}//{window.location.hostname}:3002/api/webhook/{formData.endpointSlug}
+          <strong>URL:</strong> {process.env.NODE_ENV === 'production' 
+            ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.endpointSlug}`
+            : `http://localhost:3002/api/webhook/${formData.endpointSlug}`
+          }
         </div>
         <div className="summary-item">
           <strong>Destinos:</strong> {formData.destinations.length} configurado(s)
