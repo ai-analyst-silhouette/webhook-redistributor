@@ -16,6 +16,7 @@ services:
       - webhook_data:/app/database
     networks:
       - webhook_network
+      - traefik_public
     deploy:
       replicas: 1
       restart_policy:
@@ -24,7 +25,7 @@ services:
         max_attempts: 3
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=webhook_network"
+        - "traefik.docker.network=traefik_public"
         - "traefik.http.routers.webhook-backend.rule=Host(`redistribuidor-back.silhouetteexperts.com.br`)"
         - "traefik.http.routers.webhook-backend.entrypoints=websecure"
         - "traefik.http.routers.webhook-backend.tls.certresolver=letsencrypt"
@@ -44,6 +45,7 @@ services:
       - TZ=America/Sao_Paulo
     networks:
       - webhook_network
+      - traefik_public
     deploy:
       replicas: 1
       restart_policy:
@@ -52,58 +54,20 @@ services:
         max_attempts: 3
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=webhook_network"
+        - "traefik.docker.network=traefik_public"
         - "traefik.http.routers.webhook-frontend.rule=Host(`redistribuidor-front.silhouetteexperts.com.br`)"
         - "traefik.http.routers.webhook-frontend.entrypoints=websecure"
         - "traefik.http.routers.webhook-frontend.tls.certresolver=letsencrypt"
         - "traefik.http.services.webhook-frontend.loadbalancer.server.port=80"
 
-  # Traefik Reverse Proxy
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    restart: unless-stopped
-    environment:
-      - TRAEFIK_API_DASHBOARD=true
-      - TRAEFIK_API_INSECURE=false
-      - TRAEFIK_PROVIDERS_DOCKER=true
-      - TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT=false
-      - TRAEFIK_PROVIDERS_DOCKER_NETWORK=webhook_network
-      - TRAEFIK_ENTRYPOINTS_WEB_ADDRESS=:80
-      - TRAEFIK_ENTRYPOINTS_WEBSECURE_ADDRESS=:443
-      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_TLSCHALLENGE=true
-      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=admin@silhouetteexperts.com.br
-      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_STORAGE=/letsencrypt/acme.json
-      - TRAEFIK_LOG_LEVEL=INFO
-      - TRAEFIK_ACCESSLOG=true
-      - TZ=America/Sao_Paulo
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
-    networks:
-      - webhook_network
-    deploy:
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
 volumes:
   webhook_data:
-    driver: local
-  traefik_letsencrypt:
     driver: local
 
 networks:
   webhook_network:
     driver: overlay
     attachable: true
+  traefik_public:
+    external: true
