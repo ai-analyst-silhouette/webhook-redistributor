@@ -260,12 +260,17 @@ const EndpointDocs = () => {
               <h3>🔗 URL do Webhook</h3>
               <div className="url-container">
                 <code className="webhook-url">
-                  https://seu-dominio.com/api/webhook/{selectedEndpoint.slug}
+                  {process.env.NODE_ENV === 'production' 
+                    ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
+                    : `http://localhost:3002/api/webhook/${selectedEndpoint.slug}`
+                  }
                 </code>
                 <button
                   className="copy-btn"
                   onClick={() => copyToClipboard(
-                    `https://seu-dominio.com/api/webhook/${selectedEndpoint.slug}`,
+                    process.env.NODE_ENV === 'production' 
+                      ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
+                      : `http://localhost:3002/api/webhook/${selectedEndpoint.slug}`,
                     'url'
                   )}
                 >
@@ -273,7 +278,7 @@ const EndpointDocs = () => {
                 </button>
               </div>
               <p className="url-note">
-                Substitua "seu-dominio.com" pelo domínio do seu servidor
+                URL do webhook para este endpoint
               </p>
             </div>
 

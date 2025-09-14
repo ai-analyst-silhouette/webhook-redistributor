@@ -157,10 +157,14 @@ const QuickSetup = ({ onComplete, onCancel }) => {
         }
       }
 
+      const backendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://redistribuidor-back.silhouetteexperts.com.br'
+        : 'http://localhost:3002';
+      
       onComplete && onComplete({
         endpoint,
         destinations,
-        webhookUrl: `${window.location.protocol}//${window.location.hostname}:3002/api/webhook/${endpoint.slug}`
+        webhookUrl: `${backendUrl}/api/webhook/${endpoint.slug}`
       });
 
     } catch (err) {
