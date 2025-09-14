@@ -22,8 +22,7 @@ FROM nginx:alpine
 RUN apk add --no-cache dumb-init
 
 # Create non-root user
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S webhook -u 1001 -G nginx
+RUN adduser -S webhook -u 1001 -G nginx
 
 # Copy built app to nginx
 COPY --from=build /app/build /usr/share/nginx/html
