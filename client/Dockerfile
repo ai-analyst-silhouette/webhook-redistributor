@@ -16,35 +16,34 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM node:18-alpine
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy built app to nginx
-COPY --from=build /app/build /usr/share/nginx/html
+# Install serve globally
+RUN npm install -g serve
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S webhook -u 1001 -G nodejs
 
-# Create nginx directories and set permissions
-RUN mkdir -p /tmp/nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /tmp/nginx && \
-    chmod 755 /tmp/nginx
+# Copy built app
+COPY --from=build /app/build /app/build
 
-# Switch to nginx user
-USER nginx
+# Set proper permissions
+RUN chown -R webhook:nodejs /app
+
+# Switch to non-root user
+USER webhook
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start nginx with dumb-init
+# Start serve with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "-s", "/app/build", "-l", "3000"]
