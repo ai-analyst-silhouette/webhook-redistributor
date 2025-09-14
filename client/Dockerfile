@@ -27,10 +27,16 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Set proper permissions for nginx
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
+# Create nginx directories and set permissions
+RUN mkdir -p /tmp/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /tmp/nginx && \
+    chmod 755 /tmp/nginx
+
+# Switch to nginx user
+USER nginx
 
 # Expose port
 EXPOSE 80
