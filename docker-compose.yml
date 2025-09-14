@@ -1,9 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Backend API
   webhook-backend:
-    image: ai-analyst-silhouette/webhook-redistributor-backend:latest
+    image: aianalystsilhouette/webhook-redistributor-backend:latest
     environment:
       - NODE_ENV=production
       - PORT=3002
@@ -15,59 +15,57 @@ services:
     volumes:
       - webhook_data:/app/database
     networks:
-      - webhook_network
       - traefik_public
     deploy:
+      mode: replicated
       replicas: 1
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
-        max_attempts: 3
+        max_attempts: 5
       labels:
-        - "traefik.enable=true"
-        - "traefik.docker.network=traefik_public"
-        - "traefik.http.routers.webhook-backend.rule=Host(`redistribuidor-back.silhouetteexperts.com.br`)"
-        - "traefik.http.routers.webhook-backend.entrypoints=websecure"
-        - "traefik.http.routers.webhook-backend.tls.certresolver=letsencrypt"
-        - "traefik.http.services.webhook-backend.loadbalancer.server.port=3002"
-        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowOrigin=*"
-        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
-        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowHeaders=Content-Type,Authorization"
-        - "traefik.http.routers.webhook-backend.middlewares=webhook-cors"
+        - traefik.enable=true
+        - traefik.http.routers.webhook-backend.rule=Host(`redistribuidor-back.silhouetteexperts.com.br`)
+        - traefik.http.routers.webhook-backend.service=webhook-backend
+        - traefik.http.routers.webhook-backend.entrypoints=websecure
+        - traefik.http.routers.webhook-backend.tls.certresolver=le
+        - traefik.http.routers.webhook-backend.tls=true
+        - traefik.http.services.webhook-backend.loadbalancer.server.port=3002
+        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowOrigin=*
+        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS
+        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowHeaders=Content-Type,Authorization
+        - traefik.http.routers.webhook-backend.middlewares=webhook-cors
 
   # Frontend React
   webhook-frontend:
-    image: ai-analyst-silhouette/webhook-redistributor-frontend:latest
+    image: aianalystsilhouette/webhook-redistributor-frontend:latest
     environment:
       - NODE_ENV=production
       - REACT_APP_API_URL=https://redistribuidor-back.silhouetteexperts.com.br
       - REACT_APP_FRONTEND_URL=https://redistribuidor-front.silhouetteexperts.com.br
       - TZ=America/Sao_Paulo
     networks:
-      - webhook_network
       - traefik_public
     deploy:
+      mode: replicated
       replicas: 1
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
-        max_attempts: 3
+        max_attempts: 5
       labels:
-        - "traefik.enable=true"
-        - "traefik.docker.network=traefik_public"
-        - "traefik.http.routers.webhook-frontend.rule=Host(`redistribuidor-front.silhouetteexperts.com.br`)"
-        - "traefik.http.routers.webhook-frontend.entrypoints=websecure"
-        - "traefik.http.routers.webhook-frontend.tls.certresolver=letsencrypt"
-        - "traefik.http.services.webhook-frontend.loadbalancer.server.port=3000"
-
+        - traefik.enable=true
+        - traefik.http.routers.webhook-frontend.rule=Host(`redistribuidor-front.silhouetteexperts.com.br`)
+        - traefik.http.routers.webhook-frontend.service=webhook-frontend
+        - traefik.http.routers.webhook-frontend.entrypoints=websecure
+        - traefik.http.routers.webhook-frontend.tls.certresolver=le
+        - traefik.http.routers.webhook-frontend.tls=true
+        - traefik.http.services.webhook-frontend.loadbalancer.server.port=3000
 
 volumes:
   webhook_data:
     driver: local
 
 networks:
-  webhook_network:
-    driver: overlay
-    attachable: true
   traefik_public:
     external: true
