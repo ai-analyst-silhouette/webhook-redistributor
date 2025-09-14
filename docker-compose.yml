@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Backend API
+  webhook-backend:
+    image: webhook-redistributor-backend:latest
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DB_PATH=/app/database/webhook_redistributor.db
+    volumes:
+      - webhook_data:/app/database
+    networks:
+      - webhook_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=webhook_network"
+        - "traefik.http.routers.webhook-backend.rule=Host(`redistribuidor-back.silhouetteexperts.com.br`)"
+        - "traefik.http.routers.webhook-backend.entrypoints=websecure"
+        - "traefik.http.routers.webhook-backend.tls.certresolver=letsencrypt"
+        - "traefik.http.services.webhook-backend.loadbalancer.server.port=3002"
+        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowOrigin=*"
+        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
+        - "traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowHeaders=Content-Type,Authorization"
+        - "traefik.http.routers.webhook-backend.middlewares=webhook-cors"
+
+  # Frontend React
+  webhook-frontend:
+    image: webhook-redistributor-frontend:latest
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    environment:
+      - REACT_APP_API_URL=https://redistribuidor-back.silhouetteexperts.com.br
+    networks:
+      - webhook_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=webhook_network"
+        - "traefik.http.routers.webhook-frontend.rule=Host(`redistribuidor-front.silhouetteexperts.com.br`)"
+        - "traefik.http.routers.webhook-frontend.entrypoints=websecure"
+        - "traefik.http.routers.webhook-frontend.tls.certresolver=letsencrypt"
+        - "traefik.http.services.webhook-frontend.loadbalancer.server.port=80"
+
+volumes:
+  webhook_data:
+    driver: local
+
+networks:
+  webhook_network:
+    external: true

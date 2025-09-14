@@ -1,0 +1,41 @@
+# Configuração do Traefik para referência
+# Este arquivo deve ser configurado no Portainer ou diretamente no Traefik
+
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=seu-email@silhouetteexperts.com.br
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard do Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - webhook_network
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  letsencrypt:
+    driver: local
+
+networks:
+  webhook_network:
+    external: true
