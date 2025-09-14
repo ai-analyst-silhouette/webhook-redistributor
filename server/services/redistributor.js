@@ -119,11 +119,18 @@ const sendToDestination = async (destination, payload, headers, query) => {
       ...(headers['x-webhook-event'] && { 'X-Original-Event': headers['x-webhook-event'] }),
     };
 
+    // Log what we're sending
+    console.log(`📤 Sending payload to ${destination.name}:`);
+    console.log(`   URL: ${destination.url}`);
+    console.log(`   Headers:`, redistributionHeaders);
+    console.log(`   Payload:`, JSON.stringify(payload, null, 2));
+
     // Send POST request to destination
     const response = await axios.post(destination.url, payload, {
       headers: redistributionHeaders,
       timeout: WEBHOOK_TIMEOUT,
       validateStatus: (status) => status < 500, // Accept 2xx, 3xx, 4xx as success
+      transformRequest: [(data) => JSON.stringify(data)], // Ensure proper JSON serialization
     });
 
     const duration = Date.now() - startTime;
