@@ -25,17 +25,12 @@ services:
         max_attempts: 5
       labels:
         - traefik.enable=true
-        - traefik.docker.network=traefik_public
         - traefik.http.routers.webhook-backend.rule=Host(`redistribuidor-back.silhouetteexperts.com.br`)
         - traefik.http.routers.webhook-backend.service=webhook-backend
         - traefik.http.routers.webhook-backend.entrypoints=websecure
         - traefik.http.routers.webhook-backend.tls.certresolver=le
         - traefik.http.routers.webhook-backend.tls=true
         - traefik.http.services.webhook-backend.loadbalancer.server.port=3002
-        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowOrigin=*
-        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS
-        - traefik.http.middlewares.webhook-cors.Headers.AccessControlAllowHeaders=Content-Type,Authorization
-        - traefik.http.routers.webhook-backend.middlewares=webhook-cors
 
   # Frontend React
   webhook-frontend:
@@ -56,7 +51,6 @@ services:
         max_attempts: 5
       labels:
         - traefik.enable=true
-        - traefik.docker.network=traefik_public
         - traefik.http.routers.webhook-frontend.rule=Host(`redistribuidor-front.silhouetteexperts.com.br`)
         - traefik.http.routers.webhook-frontend.service=webhook-frontend
         - traefik.http.routers.webhook-frontend.entrypoints=websecure
