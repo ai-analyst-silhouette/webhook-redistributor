@@ -21,25 +21,16 @@ FROM nginx:alpine
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Create non-root user
-RUN adduser -S webhook -u 1001 -G nginx
-
 # Copy built app to nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Set proper permissions
-RUN chown -R webhook:nginx /usr/share/nginx/html && \
-    chown -R webhook:nginx /var/cache/nginx && \
-    chown -R webhook:nginx /var/log/nginx && \
-    chown -R webhook:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R webhook:nginx /var/run/nginx.pid
-
-# Switch to non-root user
-USER webhook
+# Set proper permissions for nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx
 
 # Expose port
 EXPOSE 80
