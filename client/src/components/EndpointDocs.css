@@ -1,0 +1,535 @@
+/**
+ * Endpoint Documentation Component Styles
+ * 
+ * Provides comprehensive styling for the endpoint documentation component
+ * including tabs, code examples, and interactive elements.
+ * 
+ * @author Webhook Redistributor Team
+ * @version 1.0.0
+ */
+
+.endpoint-docs {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.docs-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.docs-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 2.2em;
+  font-weight: 600;
+}
+
+.docs-header p {
+  margin: 0;
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+.docs-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Endpoint Selector */
+.endpoint-selector {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.endpoint-selector h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.endpoint-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.endpoint-tab {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #495057;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.endpoint-tab:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+  transform: translateY(-2px);
+}
+
+.endpoint-tab.active {
+  background: #007bff;
+  border-color: #0056b3;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.endpoint-slug {
+  font-size: 0.8em;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* Endpoint Details */
+.endpoint-details {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Info Section */
+.info-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.info-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item span {
+  color: #2c3e50;
+  font-size: 1em;
+}
+
+.info-item .slug {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.info-item .status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item .status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.info-item .status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* URL Section */
+.url-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.url-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.url-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.webhook-url {
+  flex: 1;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.95em;
+  color: #2c3e50;
+  word-break: break-all;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.copy-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.copy-btn.small {
+  padding: 4px 8px;
+  font-size: 0.8em;
+}
+
+.url-note {
+  margin: 10px 0 0 0;
+  color: #6c757d;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* Examples Section */
+.examples-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.examples-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.examples h4 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.event-example {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.event-example h5 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.event-example p {
+  margin: 0 0 15px 0;
+  color: #6c757d;
+  font-size: 0.95em;
+}
+
+.example-code {
+  margin-bottom: 15px;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.code-header span {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9em;
+}
+
+.example-code code {
+  display: block;
+  background: #2c3e50;
+  color: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85em;
+  overflow-x: auto;
+}
+
+.example-code pre {
+  margin: 0;
+  background: #2c3e50;
+  color: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85em;
+  overflow-x: auto;
+}
+
+/* Best Practices Section */
+.best-practices-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.best-practices-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.practice-category {
+  margin-bottom: 25px;
+}
+
+.practice-category h4 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.practice-category ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.practice-category li {
+  margin-bottom: 8px;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+/* Troubleshooting Section */
+.troubleshooting-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.troubleshooting-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.troubleshooting-item {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #fff3cd;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+}
+
+.troubleshooting-item h4 {
+  margin: 0 0 12px 0;
+  color: #856404;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.troubleshooting-item ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.troubleshooting-item li {
+  margin-bottom: 8px;
+  color: #856404;
+  line-height: 1.5;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.quick-actions h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.action-btn.copy {
+  background: #6c757d;
+}
+
+.action-btn.copy:hover {
+  background: #5a6268;
+}
+
+/* Loading and Error States */
+.loading, .error {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1em;
+}
+
+.loading {
+  color: #6c757d;
+}
+
+.error {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .endpoint-docs {
+    padding: 15px;
+  }
+
+  .docs-header h2 {
+    font-size: 1.8em;
+  }
+
+  .endpoint-tabs {
+    flex-direction: column;
+  }
+
+  .endpoint-tab {
+    min-width: auto;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .url-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .endpoint-docs {
+    padding: 10px;
+  }
+
+  .docs-header {
+    padding: 15px;
+  }
+
+  .docs-header h2 {
+    font-size: 1.5em;
+  }
+
+  .info-section,
+  .url-section,
+  .examples-section,
+  .best-practices-section,
+  .troubleshooting-section,
+  .quick-actions {
+    padding: 15px;
+  }
+}

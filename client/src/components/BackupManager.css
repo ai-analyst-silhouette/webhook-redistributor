@@ -1,0 +1,475 @@
+/**
+ * Backup Manager Component Styles
+ * 
+ * Provides comprehensive styling for the backup and restore functionality
+ * including export/import forms, validation results, and help sections.
+ * 
+ * @author Webhook Redistributor Team
+ * @version 1.0.0
+ */
+
+.backup-manager {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.backup-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 25px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+}
+
+.backup-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 2.2em;
+  font-weight: 600;
+}
+
+.backup-header p {
+  margin: 0;
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+.backup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Backup Sections */
+.backup-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
+}
+
+.backup-section h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.4em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backup-section p {
+  margin: 0 0 20px 0;
+  color: #6c757d;
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+/* Export Options */
+.export-options {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.option-group {
+  margin-bottom: 10px;
+}
+
+.option-group:last-child {
+  margin-bottom: 0;
+}
+
+.option-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+}
+
+.option-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #007bff;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* Import Form */
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.file-input-group {
+  position: relative;
+}
+
+.file-input-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 60px;
+}
+
+.file-input-label:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.file-input-text {
+  color: #495057;
+  font-weight: 500;
+  flex: 1;
+}
+
+.file-input-button {
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.file-input-button:hover {
+  background: #0056b3;
+}
+
+.import-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Validation Result */
+.validation-result {
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid;
+  margin-top: 15px;
+}
+
+.validation-result.valid {
+  background: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.validation-result.invalid {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.validation-result h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.validation-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+}
+
+.validation-summary .status {
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.validation-summary .status.success {
+  color: #155724;
+}
+
+.validation-summary .status.error {
+  color: #721c24;
+}
+
+.validation-summary .counts {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.validation-errors,
+.validation-warnings {
+  margin-top: 15px;
+}
+
+.validation-errors h5,
+.validation-warnings h5 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.validation-errors ul,
+.validation-warnings ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.validation-errors li {
+  color: #721c24;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.validation-warnings li {
+  color: #856404;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+/* Import Options */
+.import-options {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.import-options h4 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.option-item:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.option-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #007bff;
+}
+
+.option-item span {
+  font-weight: 500;
+  color: #495057;
+}
+
+/* Help Section */
+.help-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+}
+
+.help-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.help-item {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.help-item h4 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.help-item ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.help-item li {
+  margin-bottom: 8px;
+  color: #6c757d;
+  line-height: 1.5;
+  font-size: 0.95em;
+}
+
+.help-item strong {
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #007bff;
+  border: 2px solid #007bff;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .backup-manager {
+    padding: 15px;
+  }
+
+  .backup-header {
+    padding: 20px;
+  }
+
+  .backup-header h2 {
+    font-size: 1.8em;
+  }
+
+  .backup-section {
+    padding: 20px;
+  }
+
+  .export-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    justify-content: center;
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .help-content {
+    grid-template-columns: 1fr;
+  }
+
+  .validation-summary {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .backup-manager {
+    padding: 10px;
+  }
+
+  .backup-header {
+    padding: 15px;
+  }
+
+  .backup-header h2 {
+    font-size: 1.5em;
+  }
+
+  .backup-section {
+    padding: 15px;
+  }
+
+  .file-input-label {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .import-actions {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,225 @@
+/* Settings Component Styles */
+.settings-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-header {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.settings-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.setting-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.setting-group h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.input-group .form-control {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.input-group .btn {
+  white-space: nowrap;
+}
+
+.toggle-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.toggle-info {
+  flex: 1;
+}
+
+.toggle-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.toggle-description {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.toggle-button {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: #dc3545;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+}
+
+.toggle-button.active {
+  background: #28a745;
+}
+
+.toggle-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-slider {
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.info-item strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.status-indicator {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-indicator.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-indicator.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 15px;
+  }
+  
+  .settings-content {
+    gap: 20px;
+  }
+  
+  .setting-group {
+    padding: 15px;
+  }
+  
+  .input-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .input-group .btn {
+    width: 100%;
+  }
+  
+  .toggle-setting {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .toggle-button {
+    align-self: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 10px;
+  }
+  
+  .setting-group {
+    padding: 12px;
+  }
+  
+  .toggle-button {
+    width: 50px;
+    height: 25px;
+  }
+  
+  .toggle-slider {
+    font-size: 0.6rem;
+  }
+}
