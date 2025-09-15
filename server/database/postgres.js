@@ -7,12 +7,12 @@ const { Pool } = require('pg');
 
 // Configurações do banco PostgreSQL
 const postgresConfig = {
-  user: 'postgres',
-  host: 'postgressql.silhouetteexperts.com.br',
-  database: 'redistribuidor_webhooks',
-  password: 'wZcW`785fMp?',
-  port: 5432,
-  ssl: { rejectUnauthorized: false },
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'postgressql.silhouetteexperts.com.br',
+  database: process.env.DB_NAME || 'redistribuidor_webhooks',
+  password: process.env.DB_PASSWORD || 'wZcW`785fMp?',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   max: 20, // máximo de conexões no pool
   idleTimeoutMillis: 30000, // tempo limite para conexões inativas
   connectionTimeoutMillis: 2000, // tempo limite para estabelecer conexão
