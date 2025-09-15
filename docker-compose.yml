@@ -12,6 +12,7 @@ services:
       - WEBHOOK_TIMEOUT=5000
       - MAX_RETRIES=3
       - LOG_LEVEL=info
+      - FRONTEND_URL=https://redistribuidor-front.silhouetteexperts.com.br
     volumes:
       - webhook_data:/app/database
     networks:

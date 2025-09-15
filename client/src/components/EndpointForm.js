@@ -150,7 +150,7 @@ const EndpointForm = ({
     if (!formData.slug) return '';
     return process.env.NODE_ENV === 'production' 
       ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.slug}`
-      : `http://localhost:3002/api/webhook/${formData.slug}`;
+      : `http://localhost:3001/api/webhook/${formData.slug}`;
   };
 
   return (

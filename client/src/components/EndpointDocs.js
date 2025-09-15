@@ -262,7 +262,7 @@ const EndpointDocs = () => {
                 <code className="webhook-url">
                   {process.env.NODE_ENV === 'production' 
                     ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
-                    : `http://localhost:3002/api/webhook/${selectedEndpoint.slug}`
+                    : `http://localhost:3001/api/webhook/${selectedEndpoint.slug}`
                   }
                 </code>
                 <button
@@ -270,7 +270,7 @@ const EndpointDocs = () => {
                   onClick={() => copyToClipboard(
                     process.env.NODE_ENV === 'production' 
                       ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
-                      : `http://localhost:3002/api/webhook/${selectedEndpoint.slug}`,
+                      : `http://localhost:3001/api/webhook/${selectedEndpoint.slug}`,
                     'url'
                   )}
                 >

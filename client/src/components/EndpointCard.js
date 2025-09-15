@@ -27,7 +27,7 @@ const EndpointCard = ({
   const handleCopyUrl = () => {
     const backendUrl = process.env.NODE_ENV === 'production' 
       ? 'https://redistribuidor-back.silhouetteexperts.com.br'
-      : 'http://localhost:3002';
+      : 'http://localhost:3001';
     const fullUrl = `${backendUrl}/api/webhook/${endpoint.slug}`;
     navigator.clipboard.writeText(fullUrl).then(() => {
       onCopyUrl && onCopyUrl(`URL copiada: ${fullUrl}`);
@@ -80,7 +80,7 @@ const EndpointCard = ({
             <code className="url">
               {process.env.NODE_ENV === 'production' 
                 ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${endpoint.slug}`
-                : `http://localhost:3002/api/webhook/${endpoint.slug}`
+                : `http://localhost:3001/api/webhook/${endpoint.slug}`
               }
             </code>
           </div>

@@ -159,7 +159,7 @@ const QuickSetup = ({ onComplete, onCancel }) => {
 
       const backendUrl = process.env.NODE_ENV === 'production' 
         ? 'https://redistribuidor-back.silhouetteexperts.com.br'
-        : 'http://localhost:3002';
+        : 'http://localhost:3001';
       
       onComplete && onComplete({
         endpoint,
@@ -206,7 +206,7 @@ const QuickSetup = ({ onComplete, onCancel }) => {
         <div className="form-help">
           URL completa: {process.env.NODE_ENV === 'production' 
             ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.endpointSlug || 'seu-slug'}`
-            : `http://localhost:3002/api/webhook/${formData.endpointSlug || 'seu-slug'}`
+            : `http://localhost:3001/api/webhook/${formData.endpointSlug || 'seu-slug'}`
           }
         </div>
       </div>
@@ -317,7 +317,7 @@ const QuickSetup = ({ onComplete, onCancel }) => {
         <div className="summary-item">
           <strong>URL:</strong> {process.env.NODE_ENV === 'production' 
             ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.endpointSlug}`
-            : `http://localhost:3002/api/webhook/${formData.endpointSlug}`
+            : `http://localhost:3001/api/webhook/${formData.endpointSlug}`
           }
         </div>
         <div className="summary-item">

@@ -269,7 +269,7 @@ const EndpointManager = ({ onMessage }) => {
               <p>
                 <strong>URL:</strong> {process.env.NODE_ENV === 'production' 
                   ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${viewingDestinations.slug}`
-                  : `http://localhost:3002/api/webhook/${viewingDestinations.slug}`
+                  : `http://localhost:3001/api/webhook/${viewingDestinations.slug}`
                 }
               </p>
               <p>
