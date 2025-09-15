@@ -6,11 +6,12 @@ import Button from './ui/Button';
 import ToggleSwitch from './ui/ToggleSwitch';
 import IconButton from './ui/IconButton';
 import { CopyIcon, TestTubeIcon } from './ui/icons';
+import config from '../config';
 import './Settings.css';
 
 const Settings = ({ onSettingsChange }) => {
   const [settings, setSettings] = useState({
-    webhookUrl: 'http://localhost:3002/api/webhook', // Default fallback
+    webhookUrl: config.getBackendUrl() + '/api/webhook', // Default fallback
     redistributionEnabled: true
   });
   const [loading, setLoading] = useState(false);
@@ -18,9 +19,7 @@ const Settings = ({ onSettingsChange }) => {
 
   useEffect(() => {
     // Get current webhook URL - use backend URL in production, localhost in development
-    const webhookUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://redistribuidor-back.silhouetteexperts.com.br/api/webhook'
-      : 'http://localhost:3002/api/webhook';
+    const webhookUrl = config.getBackendUrl() + '/api/webhook';
     
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Webhook URL set:', webhookUrl);

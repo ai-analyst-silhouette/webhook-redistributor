@@ -3,7 +3,7 @@ version: "3.8"
 services:
   # Backend API
   webhook-backend:
-    image: aianalystsilhouette/webhook-redistributor-backend:latest
+    image: webhook-backend:latest
     environment:
       - NODE_ENV=production
       - PORT=3002
@@ -34,7 +34,7 @@ services:
 
   # Frontend React
   webhook-frontend:
-    image: aianalystsilhouette/webhook-redistributor-frontend:latest
+    image: webhook-frontend:latest
     environment:
       - NODE_ENV=production
       - REACT_APP_API_URL=https://redistribuidor-back.silhouetteexperts.com.br

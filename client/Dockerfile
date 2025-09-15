@@ -12,6 +12,11 @@ RUN npm ci && npm cache clean --force
 # Copy source code
 COPY . .
 
+# Set production environment variables
+ENV REACT_APP_API_URL=https://redistribuidor-back.silhouetteexperts.com.br
+ENV REACT_APP_FRONTEND_URL=https://redistribuidor-front.silhouetteexperts.com.br
+ENV GENERATE_SOURCEMAP=false
+
 # Build the app
 RUN npm run build
 
