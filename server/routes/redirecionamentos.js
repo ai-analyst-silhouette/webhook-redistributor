@@ -11,7 +11,7 @@
  */
 
 const express = require('express');
-const { db } = require('../database/init');
+const { query } = require('../database/postgres');
 const messages = require('../config/messages');
 const { requirePermission, auditLog } = require('../middleware/permissions');
 

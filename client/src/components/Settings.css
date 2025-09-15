@@ -1,27 +1,25 @@
 /* Settings Component Styles */
 .settings-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 5px 15px 15px 15px; /* Menos padding superior para aproximar do header */
+  width: 100%;
+  max-width: calc(100vw - 350px); /* Margem para sidebar + espaço de respiro */
+  margin: 0 auto; /* Centralizar quando menor que max-width */
 }
 
-/* Centralização específica quando sidebar colapsado */
-.app-sidebar.collapsed + .app-main .settings-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  text-align: left;
-}
+/* Regra removida - agora controlado pelo layout.css */
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0;
+  margin: 0 auto 0 auto; /* Centralizar horizontalmente */
   padding-bottom: 8px;
   border-bottom: 2px solid #e0e0e0;
   width: 100%;
-  max-width: 1200px;
+  max-width: calc(100vw - 350px); /* Mesma largura máxima do container pai */
+  min-width: 0; /* Permitir shrinking dos elementos filhos */
+  flex-wrap: wrap; /* Quebrar linha em telas pequenas */
+  gap: 10px; /* Espaço entre elementos quando quebram linha */
 }
 
 .page-title {
@@ -81,16 +79,7 @@
   border-color: var(--primary-blue);
 }
 
-.section-header {
-  display: flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
-  transition: border-color var(--transition-normal);
-  justify-content: flex-start !important;
-}
+/* Definição duplicada removida - usando a definição principal acima */
 
 .section-icon {
   width: 48px;
@@ -396,4 +385,23 @@
   .info-item {
     padding: 8px 12px;
   }
+}
+
+/* Status indicators */
+.status-online {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.status-offline {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.status-online::before {
+  content: "🟢 ";
+}
+
+.status-offline::before {
+  content: "🔴 ";
 }

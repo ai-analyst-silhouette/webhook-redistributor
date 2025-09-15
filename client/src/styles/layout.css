@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 15px; /* Reduzido padding lateral do header */
   z-index: var(--z-header);
   box-shadow: var(--shadow-sm);
 }
@@ -179,8 +179,8 @@
    ======================================== */
 .app-main {
   grid-area: main;
-  margin-left: var(--sidebar-width);
-  margin-top: var(--header-height);
+  margin-left: 0px; /* Estado padrão: sidebar colapsado (menos espaço) - aproximado 60px */
+  margin-top: calc(var(--header-height) - 10px); /* Reduzido 10px para aproximar do header */
   margin-bottom: var(--footer-height);
   min-height: calc(100vh - var(--header-height) - var(--footer-height));
   background-color: var(--bg-primary);
@@ -195,31 +195,21 @@
   width: 60px;
 }
 
-.app-sidebar.collapsed + .app-main {
-  margin-left: 60px;
-  transition: margin-left var(--transition-normal);
-  width: calc(100% - 60px);
+/* Ajustar grid quando sidebar colapsa */
+.app-layout:has(.app-sidebar.collapsed) {
+  grid-template-columns: 60px 1fr; /* Sidebar colapsado = 60px, conteúdo = resto */
 }
 
-.app-sidebar.collapsed + .app-main .main-content {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px;
-  text-align: center;
-}
-
-/* Conteúdo normal quando sidebar expandido */
-.app-sidebar:not(.collapsed) + .app-main .main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
+/* Fallback para navegadores sem suporte a :has() */
+.app-sidebar.collapsed ~ .app-main {
+  /* Grid ajustado via JavaScript se necessário */
 }
 
 .main-content {
   min-height: 100%;
   position: relative;
   transition: all var(--transition-normal);
+  padding: 0; /* Removido padding para eliminar espaçamento */
 }
 
 /* ========================================
@@ -253,12 +243,13 @@
    MENSAGENS E ALERTAS
    ======================================== */
 .alert {
-  margin-bottom: 24px;
+  margin: 15px; /* Margem adequada nas bordas */
   padding: 16px 20px;
   border-radius: 8px;
   font-weight: 500;
   border-left: 4px solid;
   animation: slideInDown 0.3s ease-out;
+  max-width: calc(100vw - 130px); /* Largura responsiva com margens */
 }
 
 .alert-success {
@@ -382,8 +373,9 @@
   }
   
   .alert {
-    margin-bottom: 16px;
+    margin: 10px; /* Menos margem em telas menores */
     padding: 12px 16px;
+    max-width: calc(100vw - 80px); /* Ajustar para telas menores */
   }
 }
 
@@ -401,9 +393,10 @@
   }
   
   .alert {
-    margin-bottom: 12px;
+    margin: 8px; /* Ainda menos margem em telas muito pequenas */
     padding: 10px 12px;
     font-size: 14px;
+    max-width: calc(100vw - 60px); /* Ajustar para telas muito pequenas */
   }
 }
 

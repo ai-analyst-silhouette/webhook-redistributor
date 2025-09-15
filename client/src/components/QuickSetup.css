@@ -3,8 +3,9 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  max-width: 800px;
-  margin: 0 auto;
+  padding: 5px 15px 15px 15px; /* Mesmo padrão da página de ajuda */
+  max-width: none; /* Usar toda largura disponível */
+  margin: 0;
 }
 
 .setup-header {

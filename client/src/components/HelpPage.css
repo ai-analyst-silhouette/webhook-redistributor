@@ -7,19 +7,24 @@
 }
 
 .help-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 5px 15px 15px 15px; /* Padding consistente com outras páginas */
+  width: 100%;
+  max-width: calc(100vw - 350px); /* Margem para sidebar + espaço de respiro */
+  margin: 0 auto; /* Centralizar quando menor que max-width */
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0;
+  margin: 0 auto 0 auto; /* Centralizar horizontalmente */
   padding-bottom: 8px;
   border-bottom: 2px solid #e0e0e0;
   width: 100%;
-  max-width: 1200px;
+  max-width: calc(100vw - 350px); /* Mesma largura máxima do container pai */
+  min-width: 0; /* Permitir shrinking dos elementos filhos */
+  flex-wrap: wrap; /* Quebrar linha em telas pequenas */
+  gap: 10px; /* Espaço entre elementos quando quebram linha */
 }
 
 [data-theme="dark"] .section-header {

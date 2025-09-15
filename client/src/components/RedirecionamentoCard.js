@@ -16,10 +16,15 @@ const RedirecionamentoCard = ({
   actionLoading,
   user
 }) => {
+  // Converter string de URLs em array se necessário
+  const urlsArray = Array.isArray(redirecionamento.urls) 
+    ? redirecionamento.urls 
+    : (redirecionamento.urls || '').split(',').map(url => url.trim()).filter(url => url);
+
   // Estado para controlar quais URLs estão ativas
   const [activeUrls, setActiveUrls] = useState(() => {
     const initialState = {};
-    redirecionamento.urls?.forEach((url, index) => {
+    urlsArray.forEach((url, index) => {
       // Se a URL é um objeto com propriedade ativo, usa ela, senão assume true
       initialState[index] = typeof url === 'object' && url.hasOwnProperty('ativo') ? url.ativo : true;
     });
@@ -154,10 +159,10 @@ const RedirecionamentoCard = ({
         </div>
 
         <div className="urls-section">
-          <strong>URLs de Destino ({redirecionamento.urls?.length || 0}):</strong>
-          {redirecionamento.urls && redirecionamento.urls.length > 0 ? (
+          <strong>URLs de Destino ({urlsArray.length}):</strong>
+          {urlsArray.length > 0 ? (
             <div className="urls-list">
-              {redirecionamento.urls.map((url, index) => (
+              {urlsArray.map((url, index) => (
                 <div key={index} className={`url-item ${!activeUrls[index] ? 'url-disabled' : ''}`}>
                   <div className="url-content">
                     <div className="url-main">

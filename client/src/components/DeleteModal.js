@@ -40,7 +40,11 @@ const DeleteModal = ({
               <strong>Slug:</strong> {redirecionamento.slug}
             </p>
             <p className="url-info">
-              <strong>URLs de destino:</strong> {redirecionamento.urls?.length || 0}
+              <strong>URLs de destino:</strong> {redirecionamento.urls 
+                ? (Array.isArray(redirecionamento.urls) 
+                    ? redirecionamento.urls.length 
+                    : redirecionamento.urls.split(',').filter(url => url.trim()).length)
+                : 0}
             </p>
           </div>
 

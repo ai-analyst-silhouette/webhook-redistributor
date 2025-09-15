@@ -11,7 +11,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
-const { db } = require('../database/init');
+const { query } = require('../database/postgres');
 const messages = require('../config/messages');
 
 // Configurações de segurança
@@ -153,7 +153,7 @@ const apiRateLimiter = rateLimit({
  * Middleware to authenticate JWT token
  * Verifies the token and adds user information to the request object
  */
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -164,14 +164,9 @@ const authenticateToken = (req, res, next) => {
     });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ 
-        error: messages.ERROR.INVALID_TOKEN,
-        code: 'INVALID_TOKEN'
-      });
-    }
-
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
     // Verificar se o token não expirou por inatividade
     const now = Date.now();
     const tokenAge = now - (decoded.iat * 1000);
@@ -185,37 +180,42 @@ const authenticateToken = (req, res, next) => {
     }
 
     // Verify user still exists and is active using Portuguese table
-    db.get(
-      'SELECT id, nome, email, funcao, ativo FROM usuarios WHERE id = ? AND ativo = 1',
-      [decoded.userId],
-      (err, user) => {
-        if (err) {
-          console.error('Erro no banco de dados durante autenticação:', err);
-          return res.status(500).json({ 
-            error: messages.ERROR.DATABASE_ERROR,
-            code: 'AUTH_ERROR'
-          });
-        }
-
-        if (!user) {
-          return res.status(403).json({ 
-            error: messages.ERROR.USER_NOT_FOUND,
-            code: 'USER_NOT_FOUND'
-          });
-        }
-
-        // Add user information to request object
-        req.user = {
-          id: user.id,
-          name: user.nome,
-          email: user.email,
-          role: user.funcao
-        };
-
-        next();
-      }
+    const result = await query(
+      'SELECT id, nome, email, funcao, ativo FROM usuarios WHERE id = $1 AND ativo = true',
+      [decoded.userId]
     );
-  });
+    
+    const user = result.rows[0];
+    if (!user) {
+      return res.status(403).json({ 
+        error: messages.ERROR.USER_NOT_FOUND,
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Add user information to request object
+    req.user = {
+      id: user.id,
+      name: user.nome,
+      email: user.email,
+      role: user.funcao
+    };
+
+    next();
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(403).json({ 
+        error: messages.ERROR.INVALID_TOKEN,
+        code: 'INVALID_TOKEN'
+      });
+    }
+    
+    console.error('Erro no banco de dados durante autenticação:', err);
+    return res.status(500).json({ 
+      error: messages.ERROR.DATABASE_ERROR,
+      code: 'AUTH_ERROR'
+    });
+  }
 };
 
 /**
@@ -287,16 +287,15 @@ const generateToken = (user, rememberMe = false) => {
  * Update user's last login timestamp
  * @param {number} userId - User ID
  */
-const updateLastLogin = (userId) => {
-  db.run(
-    'UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id = ?',
-    [userId],
-    (err) => {
-      if (err) {
-        console.error('Erro ao atualizar último login:', err);
-      }
-    }
-  );
+const updateLastLogin = async (userId) => {
+  try {
+    await query(
+      'UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id = $1',
+      [userId]
+    );
+  } catch (err) {
+    console.error('Erro ao atualizar último login:', err);
+  }
 };
 
 module.exports = {

@@ -4,6 +4,7 @@ import api from '../api';
 import config from '../config';
 import UserForm from './UserForm';
 import UserCard from './UserCard';
+import DeleteUserModal from './DeleteUserModal';
 import PermissionWrapper from './PermissionWrapper';
 import { RefreshIcon, PlusIcon } from './ui/icons';
 import usersIcon from '../assets/icons/users.png';
@@ -16,6 +17,8 @@ const UserManager = ({ onMessage, user: currentUser }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const hasLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       
       const token = localStorage.getItem('authToken') ;
       
-      const response = await api.get(config.routes.autenticacao + '/users', {
+      const response = await api.get('/api/usuarios', {
         headers: {
         }
       });
@@ -100,7 +103,7 @@ const UserManager = ({ onMessage, user: currentUser }) => {
     try {
       const token = localStorage.getItem('authToken') ;
       
-      const response = await api.put(`${config.routes.autenticacao}/users/${id}/status`, {
+      const response = await api.put(`/api/usuarios/${id}`, {
         ativo: !currentStatus
       }, {
         headers: {
@@ -139,17 +142,18 @@ const UserManager = ({ onMessage, user: currentUser }) => {
     }
   };
 
-  const deleteUser = async (id, nome) => {
-    if (!window.confirm(`Tem certeza que deseja remover o usuário "${nome}"?`)) {
-      return;
-    }
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
 
+  const deleteUser = async (id, nome) => {
     setActionLoading(prev => ({ ...prev, [id]: true }));
     
     try {
       const token = localStorage.getItem('authToken') ;
       
-      const response = await api.delete(`${config.routes.autenticacao}/users/${id}`, {
+      const response = await api.delete(`/api/usuarios/${id}`, {
         headers: {
         }
       });
@@ -177,7 +181,20 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: false }));
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      deleteUser(userToDelete.id, userToDelete.nome);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setUserToDelete(null);
   };
 
   const formatDate = (dateString) => {
@@ -321,7 +338,7 @@ const UserManager = ({ onMessage, user: currentUser }) => {
               key={user.id}
               user={user}
               onEdit={handleEditUser}
-              onDelete={(userId) => deleteUser(userId, user.nome)}
+              onDelete={() => handleDeleteClick(user)}
               onToggleStatus={(userId, newStatus) => toggleUserStatus(userId, !newStatus)}
               actionLoading={actionLoading}
               currentUser={currentUser}
@@ -329,6 +346,14 @@ const UserManager = ({ onMessage, user: currentUser }) => {
           ))}
         </div>
       )}
+
+      <DeleteUserModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        user={userToDelete}
+        isLoading={userToDelete ? actionLoading[userToDelete.id] : false}
+      />
     </div>
   );
 };

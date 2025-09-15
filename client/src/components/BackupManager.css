@@ -9,9 +9,9 @@
  */
 
 .backup-manager {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 5px 15px 15px 15px; /* Mesmo padrão da página de ajuda */
+  max-width: none; /* Usar toda largura disponível */
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 

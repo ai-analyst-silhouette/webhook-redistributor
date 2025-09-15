@@ -256,24 +256,28 @@ const Logs = ({ onMessage, isVisible = true }) => {
 
   if (loading) {
     return (
-      <div className="logs-container">
-        <div className="logs-header">
-          <h2>
+      <div className="page-logs">
+        <div className="section-header">
+          <h2 className="page-title">
             <img 
               src={logsIcon} 
               alt="Logs" 
-              className="header-icon"
+              className="icon-img"
             />
             Histórico de Webhooks
           </h2>
-          <button onClick={fetchLogs} className="btn btn-primary" disabled>
-            <RefreshCw size={16} className="spinning" />
-            Carregando...
-          </button>
+          <div className="header-actions">
+            <button onClick={fetchLogs} className="btn btn-primary" disabled>
+              <RefreshCw size={16} className="spinning" />
+              Carregando...
+            </button>
+          </div>
         </div>
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Carregando logs de webhook...</p>
+        <div className="logs-manager">
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Carregando logs de webhook...</p>
+          </div>
         </div>
       </div>
     );
@@ -281,38 +285,42 @@ const Logs = ({ onMessage, isVisible = true }) => {
 
   if (error) {
     return (
-      <div className="logs-container">
-        <div className="logs-header">
-          <h2>
+      <div className="page-logs">
+        <div className="section-header">
+          <h2 className="page-title">
             <img 
               src={logsIcon} 
               alt="Logs" 
-              className="header-icon"
+              className="icon-img"
             />
             Histórico de Webhooks
           </h2>
-          <button onClick={fetchLogs} className="btn btn-primary">
-            <RefreshCw size={16} />
-            Tentar Novamente
-          </button>
+          <div className="header-actions">
+            <button onClick={fetchLogs} className="btn btn-primary">
+              <RefreshCw size={16} />
+              Tentar Novamente
+            </button>
+          </div>
         </div>
-        <div className="error-state">
-          <p><XCircle size={16} /> {error}</p>
+        <div className="logs-manager">
+          <div className="error-state">
+            <p><XCircle size={16} /> {error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="logs-container">
-      <div className="logs-header">
-        <h2>
+    <div className="page-logs">
+      <div className="section-header">
+        <h2 className="page-title">
           <img 
             src={logsIcon} 
             alt="Logs" 
-            className="header-icon"
+            className="icon-img"
           />
-          Histórico de Webhooks
+          Histórico de Webhooks ({getFilteredLogs().length})
         </h2>
         <div className="header-actions">
           <div className="auto-refresh-controls">
@@ -343,12 +351,13 @@ const Logs = ({ onMessage, isVisible = true }) => {
               </span>
             )}
           </span>
-          <button onClick={() => fetchLogs(selectedRedirecionamento, statusFilter)} className="btn btn-primary">
-            <RefreshCw size={16} />
+          <button onClick={() => fetchLogs(selectedRedirecionamento, statusFilter)} className="btn btn-secondary">
+            <RefreshCw size={20} />
             Atualizar
           </button>
         </div>
       </div>
+      <div className="logs-manager">
 
       {/* Filters */}
       <div className="logs-filters">
@@ -486,6 +495,7 @@ const Logs = ({ onMessage, isVisible = true }) => {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };

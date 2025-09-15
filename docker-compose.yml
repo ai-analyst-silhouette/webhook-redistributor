@@ -20,7 +20,7 @@ services:
       mode: replicated
       replicas: 1
       restart_policy:
-        condition: any
+        condition: on-failure
         delay: 5s
         max_attempts: 5
       labels:
@@ -46,7 +46,7 @@ services:
       mode: replicated
       replicas: 1
       restart_policy:
-        condition: any
+        condition: on-failure
         delay: 5s
         max_attempts: 5
       labels:

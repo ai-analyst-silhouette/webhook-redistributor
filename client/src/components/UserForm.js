@@ -118,23 +118,23 @@ const UserForm = ({
       const payload = {
         nome: formData.nome.trim(),
         email: formData.email.trim(),
-        role: formData.role
+        funcao: formData.role
       };
 
       // Incluir senha apenas se fornecida
       if (formData.password) {
-        payload.password = formData.password;
+        payload.senha = formData.password;
       }
 
       let response;
       if (isEditing) {
-        response = await api.put(`${config.routes.autenticacao}/users/${user.id}`, payload, {
+        response = await api.put(`/api/usuarios/${user.id}`, payload, {
           headers: {
           }
         });
         onUserUpdated(response.data.data);
       } else {
-        response = await api.post(`${config.routes.autenticacao}/users`, payload, {
+        response = await api.post('/api/usuarios', payload, {
           headers: {
           }
         });

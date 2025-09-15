@@ -1,6 +1,6 @@
 const { hasPermission, isAdmin, isUser } = require('../config/permissions');
 const messages = require('../config/messages');
-const auditService = require('../services/auditService');
+// Audit service removido - usando PostgreSQL diretamente
 
 /**
  * Middleware para verificar se o usuário tem uma permissão específica
@@ -176,13 +176,8 @@ function auditLog(action, description, resourceType = null, resourceId = null) {
           user_agent: req.get('User-Agent')
         };
 
-        // Salva no banco de dados
-        try {
-          await auditService.logAction(auditData);
-        } catch (auditError) {
-          console.error('Erro ao salvar log de auditoria:', auditError);
-          // Não interrompe o fluxo em caso de erro no log
-        }
+        // Log de auditoria desabilitado temporariamente
+        console.log('Ação de auditoria:', auditData);
       }
 
       next();

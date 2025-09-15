@@ -1,7 +1,7 @@
 .user-profile {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 5px 15px 15px 15px; /* Mesmo padrão da página de ajuda */
+  max-width: none; /* Usar toda largura disponível */
+  margin: 0;
 }
 
 .profile-header {

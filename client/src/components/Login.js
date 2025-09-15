@@ -35,14 +35,14 @@ const Login = ({ onLogin }) => {
       const response = await api.post(config.routes.autenticacao + '/login', formData);
       
       if (response.data.success) {
-        const { token, user } = response.data.data;
+        const { token, user } = response.data;
         
         // Converter campos para o formato esperado pelo frontend
         const userData = {
           id: user.id,
-          nome: user.name,
+          nome: user.nome,
           email: user.email,
-          funcao: user.role
+          funcao: user.funcao
         };
         
         

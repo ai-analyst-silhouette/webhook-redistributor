@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../database/init');
+const { query } = require('../database/postgres');
 const { logEndpointUsage, logEndpointResponse, getDetailedEndpointStats } = require('../middleware/endpointLogger');
 const logs = require('../database/logs');
 const messages = require('../config/messages');
@@ -228,15 +228,8 @@ router.get('/:slug', async (req, res) => {
 async function routeToDefaultRedirecionamento(payload, headers, query) {
   try {
     // Get default redirecionamento
-    const redirecionamento = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM redirecionamentos WHERE slug = ? AND ativo = 1', ['default'], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+    const result = await query('SELECT * FROM redirecionamentos WHERE slug = $1 AND ativo = true', ['default']);
+    const redirecionamento = result.rows[0];
 
     if (!redirecionamento) {
       return {
@@ -294,15 +287,8 @@ async function routeToDefaultRedirecionamento(payload, headers, query) {
 async function routeToRedirecionamento(slug, payload, headers, query) {
   try {
     // Get redirecionamento by slug
-    const redirecionamento = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM redirecionamentos WHERE slug = ? AND ativo = 1', [slug], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+    const result = await query('SELECT * FROM redirecionamentos WHERE slug = $1 AND ativo = true', [slug]);
+    const redirecionamento = result.rows[0];
 
     if (!redirecionamento) {
       return {

@@ -1,53 +1,84 @@
 /* Logs Component Styles */
-.logs-container {
+.page-logs {
+  padding: 5px 15px 15px 15px;
+  max-width: calc(150vw - 40px); /* Aumentado em 50% da largura da viewport */
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 30px; /* 30px de espaçamento entre as divs */
+}
+
+.logs-manager {
   background: var(--bg-glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  margin-bottom: var(--space-5);
+  padding: 20px;
   box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
 }
 
-.logs-container:hover {
+.logs-manager:hover {
   box-shadow: var(--shadow-lg);
 }
 
-.logs-header {
+/* Section header agora usa o padrão global */
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid var(--border-primary);
-  transition: border-color var(--transition-normal);
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  width: 100%;
+  min-width: 0; /* Permitir shrinking dos elementos filhos */
+  flex-wrap: wrap; /* Quebrar linha em telas pequenas */
+  gap: 10px; /* Espaço entre elementos quando quebram linha */
 }
 
-.logs-header h2 {
+.page-title {
   margin: 0;
   color: var(--text-primary);
   font-size: 1.5rem;
-  transition: color var(--transition-normal);
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: color var(--transition-normal);
 }
 
-.logs-header h2 .header-icon {
+.page-title .icon-img {
   width: 32px;
   height: 32px;
   transition: filter var(--transition-normal);
 }
 
-[data-theme="dark"] .logs-header h2 .header-icon {
+[data-theme="dark"] .page-title .icon-img {
   filter: brightness(0) invert(1);
+}
+
+[data-theme="dark"] .section-header {
+  border-bottom-color: #3c4043;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0; /* Evitar que as ações encolham muito */
+  flex-wrap: wrap; /* Quebrar linha se necessário */
+}
+
+/* Media queries para responsividade */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .header-actions {
+    justify-content: center;
+    gap: 10px;
+  }
 }
 
 .auto-refresh-controls {

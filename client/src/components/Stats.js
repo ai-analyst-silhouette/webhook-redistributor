@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, CheckCircle, XCircle, Calendar, Target, Activity } from 'lucide-react';
+import { TrendingUp, CheckCircle, XCircle, Calendar, Target, Activity, Clock } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import Skeleton from './ui/Skeleton';
@@ -79,28 +79,33 @@ const Stats = ({ onMessage, isVisible = true }) => {
 
   if (loading) {
     return (
-      <div className="stats-container">
-        <div className="stats-header">
-          <h2>
+      <div className="page-stats">
+        <div className="section-header">
+          <h2 className="page-title">
             <img 
               src={estatisticaIcon} 
               alt="Estatísticas" 
-              className="header-icon"
+              className="icon-img"
             />
             Estatísticas
           </h2>
+          <div className="header-actions">
+            {/* Botão de atualizar durante loading pode ficar vazio ou disabled */}
+          </div>
         </div>
-        <div className="skeleton-stats">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="skeleton-stat-card">
-              <div className="skeleton-stat-header">
-                <Skeleton width="40px" height="40px" borderRadius="var(--radius-md)" />
-                <Skeleton width="60%" height="16px" />
+        <div className="stats-manager">
+          <div className="skeleton-stats">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="skeleton-stat-card">
+                <div className="skeleton-stat-header">
+                  <Skeleton width="40px" height="40px" borderRadius="var(--radius-md)" />
+                  <Skeleton width="60%" height="16px" />
+                </div>
+                <Skeleton width="80%" height="32px" />
+                <Skeleton width="50%" height="14px" />
               </div>
-              <Skeleton width="80%" height="32px" />
-              <Skeleton width="50%" height="14px" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -108,44 +113,51 @@ const Stats = ({ onMessage, isVisible = true }) => {
 
   if (error) {
     return (
-      <div className="stats-container">
-        <div className="stats-header">
-          <h2>
+      <div className="page-stats">
+        <div className="section-header">
+          <h2 className="page-title">
             <img 
               src={estatisticaIcon} 
               alt="Estatísticas" 
-              className="header-icon"
+              className="icon-img"
             />
             Estatísticas
           </h2>
-          <button onClick={fetchStats} className="btn btn-primary">
-            🔄 Tentar Novamente
-          </button>
+          <div className="header-actions">
+            <button onClick={fetchStats} className="btn btn-primary">
+              🔄 Tentar Novamente
+            </button>
+          </div>
         </div>
-        <div className="error-state">
-          <p>❌ {error}</p>
+        <div className="stats-manager">
+          <div className="error-state">
+            <p>❌ {error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="stats-container">
-      <div className="stats-header">
-        <h2>
+    <div className="page-stats">
+      <div className="section-header">
+        <h2 className="page-title">
           <img 
             src={estatisticaIcon} 
             alt="Estatísticas" 
-            className="header-icon"
+            className="icon-img"
           />
           Estatísticas
         </h2>
-        <button onClick={fetchStats} className="btn btn-primary">
-          🔄 Atualizar
-        </button>
+        <div className="header-actions">
+          <button onClick={fetchStats} className="btn btn-secondary">
+            🔄 Atualizar
+          </button>
+        </div>
       </div>
-
-      <div className="stats-grid">
+      <div className="stats-manager">
+        <div className="stats-grid">
+        {/* Primeira linha - 3 cards sem barra */}
         <div className="stat-card total">
           <div className="stat-icon">
             <TrendingUp size={24} />
@@ -157,6 +169,31 @@ const Stats = ({ onMessage, isVisible = true }) => {
           </div>
         </div>
 
+        <div className="stat-card today">
+          <div className="stat-icon">
+            <Calendar size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">{formatNumber(stats?.today || 0)}</div>
+            <div className="stat-label">Hoje</div>
+            <div className="stat-description">Recebidos hoje</div>
+          </div>
+        </div>
+
+        <div className="stat-card destinations">
+          <div className="stat-icon">
+            <Activity size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">
+              {stats?.total > 0 ? Math.round((stats?.successful || 0) / stats.total * 100) : 0}%
+            </div>
+            <div className="stat-label">Eficiência</div>
+            <div className="stat-description">Relação sucesso vs total</div>
+          </div>
+        </div>
+
+        {/* Segunda linha - 3 cards com barra */}
         <div className="stat-card success">
           <div className="stat-icon">
             <CheckCircle size={24} />
@@ -175,7 +212,8 @@ const Stats = ({ onMessage, isVisible = true }) => {
           </div>
         </div>
 
-        <div className="stat-card error">
+
+        <div className="stat-card errors">
           <div className="stat-icon">
             <XCircle size={24} />
           </div>
@@ -186,21 +224,10 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <ProgressBar 
               value={stats?.errors || 0} 
               max={stats?.total || 1} 
-              variant="error" 
+              variant="danger" 
               size="sm"
               className="stat-progress"
             />
-          </div>
-        </div>
-
-        <div className="stat-card today">
-          <div className="stat-icon">
-            <Calendar size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{formatNumber(stats?.today || 0)}</div>
-            <div className="stat-label">Hoje</div>
-            <div className="stat-description">Recebidos hoje</div>
           </div>
         </div>
 
@@ -226,19 +253,6 @@ const Stats = ({ onMessage, isVisible = true }) => {
             />
           </div>
         </div>
-
-        <div className="stat-card destinations">
-          <div className="stat-icon">
-            <Activity size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">
-              {stats?.total > 0 ? Math.round((stats?.successful || 0) / stats.total * 100) : 0}%
-            </div>
-            <div className="stat-label">Eficiência</div>
-            <div className="stat-description">Relação sucesso vs total</div>
-          </div>
-        </div>
       </div>
 
       <div className="stats-summary">
@@ -258,6 +272,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <strong>Atividade de hoje:</strong> {formatNumber(stats?.today || 0)} webhooks recebidos
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

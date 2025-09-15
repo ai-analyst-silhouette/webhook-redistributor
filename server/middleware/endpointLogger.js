@@ -10,7 +10,7 @@
  * @version 1.0.0
  */
 
-const models = require('../database/models');
+const { query } = require('../database/postgres');
 const { logWebhook } = require('../database/logs');
 
 // In-memory counter for endpoint usage (in production, this should be in a database)
@@ -144,27 +144,26 @@ const resetEndpointCounters = () => {
  */
 const getDetailedEndpointStats = async () => {
   try {
-    const endpoints = await models.getAllEndpoints();
+    // Por enquanto, retorna estatísticas básicas dos redirecionamentos
+    const result = await query('SELECT id, nome, slug, descricao, ativo, created_at FROM redirecionamentos WHERE ativo = true');
     const detailedStats = [];
     
-    for (const endpoint of endpoints) {
-      const destinations = await models.getActiveDestinationsByEndpoint(endpoint.id);
-      const totalDestinations = await models.getDestinationsByEndpoint(endpoint.id);
-      const usageCount = endpointUsageCounters.get(endpoint.slug) || 0;
+    for (const redirecionamento of result.rows) {
+      const usageCount = endpointUsageCounters.get(redirecionamento.slug) || 0;
       
       detailedStats.push({
         endpoint: {
-          id: endpoint.id,
-          name: endpoint.name,
-          slug: endpoint.slug,
-          description: endpoint.description,
-          active: endpoint.active,
-          created_at: endpoint.created_at
+          id: redirecionamento.id,
+          name: redirecionamento.nome,
+          slug: redirecionamento.slug,
+          description: redirecionamento.descricao,
+          active: redirecionamento.ativo,
+          created_at: redirecionamento.created_at
         },
         destinations: {
-          total: totalDestinations.length,
-          active: destinations.length,
-          inactive: totalDestinations.length - destinations.length
+          total: 0, // TODO: Implementar contagem de destinos
+          active: 0, // TODO: Implementar contagem de destinos
+          inactive: 0 // TODO: Implementar contagem de destinos
         },
         usage: {
           totalRequests: usageCount,

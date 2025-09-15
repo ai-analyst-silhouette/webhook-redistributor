@@ -9,14 +9,14 @@ const config = {
   apiUrl: process.env.REACT_APP_API_URL || 
     (process.env.NODE_ENV === 'production' 
       ? 'https://redistribuidor-back.silhouetteexperts.com.br' 
-      : 'http://localhost:3002'),
+      : 'http://localhost:3001'),
   
   // Função para obter a URL base do backend
   getBackendUrl: () => {
     return process.env.REACT_APP_API_URL || 
       (process.env.NODE_ENV === 'production' 
         ? 'https://redistribuidor-back.silhouetteexperts.com.br' 
-        : 'http://localhost:3002');
+        : 'http://localhost:3001');
   },
   
   // Timeout para requisições

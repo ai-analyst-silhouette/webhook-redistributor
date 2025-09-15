@@ -30,8 +30,10 @@ const RedirecionamentoForm = ({
         nome: redirecionamento.nome || '',
         slug: redirecionamento.slug || '',
         descricao: redirecionamento.descricao || '',
-        urls: redirecionamento.urls && redirecionamento.urls.length > 0 
-          ? [...redirecionamento.urls] 
+        urls: redirecionamento.urls 
+          ? (Array.isArray(redirecionamento.urls) 
+              ? [...redirecionamento.urls] 
+              : redirecionamento.urls.split(',').map(url => url.trim()).filter(url => url))
           : [''],
         ativo: redirecionamento.ativo !== undefined ? redirecionamento.ativo : true
       });

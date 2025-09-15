@@ -122,7 +122,7 @@ cd client && npm start
 
 ## 🗄️ Banco de Dados
 
-O sistema usa SQLite com três tabelas principais:
+O sistema usa PostgreSQL com as seguintes tabelas principais:
 
 ### `webhook_endpoints`
 - `id` - Chave primária

@@ -14,13 +14,14 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { initializeDatabase } = require('./database/init');
+const { initializeDatabase } = require('./database/init-postgres');
 const { toBrazilianTime } = require('./utils/timezone');
 
 // Import API routes
-const authRoutes = require('./routes/auth');              // Authentication routes
+const authRoutes = require('./routes/auth-postgres');     // Authentication routes
 const webhookRoutes = require('./routes/webhook');        // Webhook reception and redistribution
-const redirecionamentosRoutes = require('./routes/redirecionamentos'); // Redirecionamentos CRUD operations
+const redirecionamentosRoutes = require('./routes/redirecionamentos-postgres'); // Redirecionamentos CRUD operations
+const usuariosRoutes = require('./routes/usuarios');      // User management
 const logsRoutes = require('./routes/logs');              // Logs and statistics
 const exportRoutes = require('./routes/export');          // Export/import configuration
 
@@ -64,8 +65,34 @@ app.get('/health', (req, res) => {
 app.use('/api/autenticacao', authRoutes);                    // Authentication routes (no auth required)
 app.use('/api/webhook', webhookRoutes);                      // Webhook reception (no auth required for webhook reception)
 app.use('/api/redirecionamentos', authenticateToken, redirecionamentosRoutes); // Redirecionamentos CRUD operations (auth required)
+app.use('/api/usuarios', authenticateToken, usuariosRoutes); // User management (auth required)
 app.use('/api/logs-webhook', authenticateToken, logsRoutes);          // Logs and statistics (auth required)
 app.use('/api/exportar', authenticateToken, exportRoutes);            // Export/import configuration (auth required)
+
+// Temporary routes for frontend compatibility
+app.get('/api/endpoints', authenticateToken, (req, res) => {
+  res.json({ success: true, data: [] });
+});
+
+app.get('/api/destinations', authenticateToken, (req, res) => {
+  res.json({ success: true, data: [] });
+});
+
+app.post('/api/destinations', authenticateToken, (req, res) => {
+  res.json({ success: true, data: { id: 1, message: 'Destination created' } });
+});
+
+app.post('/api/endpoints', authenticateToken, (req, res) => {
+  res.json({ success: true, data: { id: 1, message: 'Endpoint created' } });
+});
+
+app.put('/api/endpoints/:id', authenticateToken, (req, res) => {
+  res.json({ success: true, data: { id: req.params.id, message: 'Endpoint updated' } });
+});
+
+app.delete('/api/endpoints/:id', authenticateToken, (req, res) => {
+  res.json({ success: true, data: { id: req.params.id, message: 'Endpoint deleted' } });
+});
 
 // Initialize database and start server
 const startServer = async () => {

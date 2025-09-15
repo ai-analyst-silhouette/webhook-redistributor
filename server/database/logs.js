@@ -1,276 +1,200 @@
-const { db } = require('./init');
+const { query } = require('./postgres');
 const { toBrazilianTime } = require('../utils/timezone');
 
 // Create a new webhook log entry
-const createWebhookLog = (payload, status, destinationsSent, errorMessage = null) => {
-  return new Promise((resolve, reject) => {
-    const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
-    
-    db.run(
-      'INSERT INTO logs_webhook (payload, status, destinos_enviados, mensagem_erro) VALUES (?, ?, ?, ?)',
-      [payloadString, status, destinationsSent, errorMessage],
-      function(err) {
-        if (err) {
-          console.error('Error creating webhook log:', err.message);
-          return reject(new Error('Failed to create webhook log'));
-        }
-        console.log(`Webhook log created with ID: ${this.lastID}`);
-        resolve({
-          id: this.lastID,
-          payload: payloadString,
-          status,
-          destinos_enviados: destinationsSent,
-          mensagem_erro: errorMessage,
-          recebido_em: toBrazilianTime()
-        });
-      }
+const createWebhookLog = async (payload, status, destinationsSent, errorMessage = null) => {
+  try {
+    const result = await query(
+      `INSERT INTO logs_webhook (payload, status, destinos_enviados, erro, recebido_em) 
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) 
+       RETURNING id`,
+      [JSON.stringify(payload), status, destinationsSent, errorMessage]
     );
-  });
-};
-
-// Get recent webhook logs (last 50)
-const getRecentWebhookLogs = (limit = 50) => {
-  return new Promise((resolve, reject) => {
-    db.all(
-      'SELECT * FROM logs_webhook ORDER BY recebido_em DESC LIMIT ?',
-      [limit],
-      (err, rows) => {
-        if (err) {
-          console.error('Error fetching webhook logs:', err.message);
-          return reject(new Error('Failed to fetch webhook logs'));
-        }
-        resolve(rows);
-      }
-    );
-  });
+    return result.rows[0].id;
+  } catch (error) {
+    console.error('Error creating webhook log:', error);
+    throw error;
+  }
 };
 
 // Get webhook statistics
-const getWebhookStats = () => {
-  return new Promise((resolve, reject) => {
-    const stats = {};
+const getWebhookStats = async () => {
+  try {
+    const result = await query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
+        COUNT(CASE WHEN status = 'error' THEN 1 END) as errors,
+        COUNT(CASE WHEN DATE(recebido_em) = CURRENT_DATE THEN 1 END) as today
+      FROM logs_webhook
+    `);
+
+    return {
+      total: parseInt(result.rows[0].total),
+      successful: parseInt(result.rows[0].successful),
+      errors: parseInt(result.rows[0].errors),
+      today: parseInt(result.rows[0].today)
+    };
+  } catch (error) {
+    console.error('Error getting webhook stats:', error);
+    return { total: 0, successful: 0, errors: 0, today: 0 };
+  }
+};
+
+// Get webhook logs with pagination
+const getWebhookLogs = async (page = 1, limit = 50, status = null) => {
+  try {
+    const offset = (page - 1) * limit;
+    let whereClause = '';
+    let params = [limit, offset];
     
-    // Get total webhooks received
-    db.get('SELECT COUNT(*) as total FROM logs_webhook', (err, row) => {
-      if (err) {
-        console.error('Error fetching total webhooks:', err.message);
-        return reject(new Error('Failed to fetch total webhooks'));
-      }
-      stats.total = row.total;
-      
-      // Get successful webhooks
-      db.get('SELECT COUNT(*) as successful FROM logs_webhook WHERE status = "success"', (err, row) => {
-        if (err) {
-          console.error('Error fetching successful webhooks:', err.message);
-          return reject(new Error('Failed to fetch successful webhooks'));
-        }
-        stats.successful = row.successful;
-        
-        // Get error webhooks
-        db.get('SELECT COUNT(*) as errors FROM logs_webhook WHERE status = "error"', (err, row) => {
-          if (err) {
-            console.error('Error fetching error webhooks:', err.message);
-            return reject(new Error('Failed to fetch error webhooks'));
-          }
-          stats.errors = row.errors;
-          
-          // Get today's webhooks
-          db.get('SELECT COUNT(*) as today FROM logs_webhook WHERE DATE(recebido_em) = DATE("now")', (err, row) => {
-            if (err) {
-              console.error('Error fetching today\'s webhooks:', err.message);
-              return reject(new Error('Failed to fetch today\'s webhooks'));
-            }
-            stats.today = row.today;
-            
-            // Calculate success rate
-            stats.success_rate = stats.total > 0 ? ((stats.successful / stats.total) * 100).toFixed(2) : 0;
-            
-            resolve(stats);
-          });
-        });
-      });
-    });
-  });
+    if (status) {
+      whereClause = 'WHERE status = $3';
+      params = [limit, offset, status];
+    }
+    
+    const result = await query(
+      `SELECT * FROM logs_webhook ${whereClause} 
+       ORDER BY recebido_em DESC 
+       LIMIT $1 OFFSET $2`,
+      params
+    );
+    
+    return result.rows;
+  } catch (error) {
+    console.error('Error getting webhook logs:', error);
+    return [];
+  }
+};
+
+// Get recent webhook logs (alias for getWebhookLogs)
+const getRecentWebhookLogs = async (limit = 50) => {
+  return await getWebhookLogs(1, limit);
+};
+
+// Get detailed webhook statistics
+const getDetailedStats = async (startDate = null, endDate = null) => {
+  try {
+    let whereClause = '';
+    let params = [];
+    
+    if (startDate && endDate) {
+      whereClause = 'WHERE recebido_em BETWEEN $1 AND $2';
+      params = [startDate, endDate];
+    }
+    
+    const result = await query(
+      `SELECT 
+         COUNT(*) as total,
+         COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
+         COUNT(CASE WHEN status = 'error' THEN 1 END) as errors,
+         AVG(CASE WHEN status = 'success' THEN destinos_enviados END) as avg_destinations
+       FROM logs_webhook ${whereClause}`,
+      params
+    );
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error getting detailed stats:', error);
+    return { total: 0, successful: 0, errors: 0, avg_destinations: 0 };
+  }
 };
 
 // Get webhook logs by date range
-const getWebhookLogsByDateRange = (startDate, endDate, limit = 100) => {
-  return new Promise((resolve, reject) => {
-    db.all(
-      'SELECT * FROM logs_webhook WHERE recebido_em BETWEEN ? AND ? ORDER BY recebido_em DESC LIMIT ?',
-      [startDate, endDate, limit],
-      (err, rows) => {
-        if (err) {
-          console.error('Error fetching webhook logs by date range:', err.message);
-          return reject(new Error('Failed to fetch webhook logs by date range'));
-        }
-        resolve(rows);
-      }
+const getWebhookLogsByDateRange = async (startDate, endDate, limit = 50) => {
+  try {
+    const result = await query(
+      `SELECT * FROM logs_webhook 
+       WHERE recebido_em BETWEEN $1 AND $2 
+       ORDER BY recebido_em DESC 
+       LIMIT $3`,
+      [startDate, endDate, limit]
     );
-  });
+    
+    return result.rows;
+  } catch (error) {
+    console.error('Error getting webhook logs by date range:', error);
+    return [];
+  }
 };
 
-// Get webhook statistics grouped by endpoint
-const getWebhookStatsByEndpoint = (startDate, endpoint = null) => {
-  return new Promise((resolve, reject) => {
-    let query = `
-      SELECT 
-        wl.endpoint_slug,
-        COUNT(*) as usage_count,
-        AVG(wl.response_time) as avg_response_time,
-        SUM(CASE WHEN wl.status = 200 THEN 1 ELSE 0 END) as success_count,
-        SUM(CASE WHEN wl.status >= 400 THEN 1 ELSE 0 END) as error_count,
-        MAX(wl.recebido_em) as last_used
-      FROM logs_webhook wl
-      WHERE wl.recebido_em >= ?
-    `;
+// Get webhook log by ID
+const getWebhookLogById = async (id) => {
+  try {
+    const result = await query('SELECT * FROM logs_webhook WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error getting webhook log by ID:', error);
+    return null;
+  }
+};
+
+// Get webhook stats by endpoint
+const getWebhookStatsByEndpoint = async (startDate, endpoint) => {
+  try {
+    const result = await query(
+      `SELECT 
+         COUNT(*) as total,
+         COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
+         COUNT(CASE WHEN status = 'error' THEN 1 END) as errors
+       FROM logs_webhook 
+       WHERE recebido_em >= $1 AND slug = $2`,
+      [startDate, endpoint]
+    );
     
-    const params = [startDate.toISOString()];
-    
-    if (endpoint) {
-      query += ' AND wl.endpoint_slug = ?';
-      params.push(endpoint);
-    }
-    
-    query += ' GROUP BY wl.endpoint_slug ORDER BY usage_count DESC';
-    
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        console.error('Error fetching webhook stats by endpoint:', err.message);
-        return reject(err);
-      }
-      
-      // Get overall stats
-      const overallQuery = `
-        SELECT 
-          COUNT(*) as total_usage,
-          AVG(response_time) as avg_response_time,
-          SUM(CASE WHEN status = 200 THEN 1 ELSE 0 END) as total_success,
-          SUM(CASE WHEN status >= 400 THEN 1 ELSE 0 END) as total_errors
-        FROM logs_webhook 
-        WHERE recebido_em >= ?
-      `;
-      
-      const overallParams = [startDate.toISOString()];
-      if (endpoint) {
-        overallQuery += ' AND endpoint_slug = ?';
-        overallParams.push(endpoint);
-      }
-      
-      db.get(overallQuery, overallParams, (err, overallStats) => {
-        if (err) {
-          console.error('Error fetching overall stats:', err.message);
-          return reject(err);
-        }
-        
-        const successRate = overallStats.total_usage > 0 
-          ? Math.round((overallStats.total_success / overallStats.total_usage) * 100)
-          : 0;
-        
-        resolve({
-          endpoints: rows.map(row => ({
-            endpoint_slug: row.endpoint_slug || 'default',
-            usage_count: row.usage_count,
-            avg_response_time: Math.round(row.avg_response_time || 0),
-            success_count: row.success_count,
-            error_count: row.error_count,
-            last_used: row.last_used,
-            success_rate: row.usage_count > 0 ? Math.round((row.success_count / row.usage_count) * 100) : 0
-          })),
-          total_usage: overallStats.total_usage,
-          avg_response_time: Math.round(overallStats.avg_response_time || 0),
-          success_rate: successRate,
-          recent_activity: [] // This could be populated with recent activity if needed
-        });
-      });
-    });
-  });
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error getting webhook stats by endpoint:', error);
+    return { total: 0, successful: 0, errors: 0 };
+  }
 };
 
 // Get webhook logs by endpoint
-const getWebhookLogsByEndpoint = (endpointSlug, limit = 50, status = null) => {
-  return new Promise((resolve, reject) => {
-    let query = `
-      SELECT 
-        wl.*,
-        we.name as endpoint_name,
-        we.slug as endpoint_slug
-      FROM logs_webhook wl
-      LEFT JOIN webhook_endpoints we ON wl.endpoint_slug = we.slug
-      WHERE wl.endpoint_slug = ?
-    `;
-    
-    const params = [endpointSlug];
+const getWebhookLogsByEndpoint = async (slug, limit = 50, status = null) => {
+  try {
+    let whereClause = 'WHERE slug = $1';
+    let params = [slug, limit];
     
     if (status) {
-      if (status === 'success') {
-        query += ' AND wl.status = 200';
-      } else if (status === 'error') {
-        query += ' AND wl.status >= 400';
-      }
+      whereClause += ' AND status = $3';
+      params.push(status);
     }
     
-    query += ' ORDER BY wl.recebido_em DESC LIMIT ?';
-    params.push(limit);
+    const result = await query(
+      `SELECT * FROM logs_webhook ${whereClause} 
+       ORDER BY recebido_em DESC 
+       LIMIT $2`,
+      params
+    );
     
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        console.error('Error fetching webhook logs by endpoint:', err.message);
-        return reject(err);
-      }
-      
-      const logs = rows.map(row => ({
-        id: row.id,
-        payload: row.payload,
-        status: row.status,
-        destinos_enviados: row.destinos_enviados,
-        mensagem_erro: row.mensagem_erro,
-        recebido_em: row.recebido_em,
-        response_time: row.response_time,
-        endpoint_slug: row.endpoint_slug,
-        endpoint_name: row.endpoint_name || 'Default'
-      }));
-      
-      resolve(logs);
-    });
-  });
+    return result.rows;
+  } catch (error) {
+    console.error('Error getting webhook logs by endpoint:', error);
+    return [];
+  }
 };
 
-// Enhanced logWebhook function with endpoint support
-const logWebhook = (payload, status, destinationsSent, errorMessage = null, endpointSlug = null, responseTime = 0) => {
-  return new Promise((resolve, reject) => {
-    const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
-    
-    db.run(
-      'INSERT INTO logs_webhook (payload, status, destinos_enviados, mensagem_erro, endpoint_slug, response_time) VALUES (?, ?, ?, ?, ?, ?)',
-      [payloadString, status, destinationsSent, errorMessage, endpointSlug, responseTime],
-      function(err) {
-        if (err) {
-          console.error('Error creating webhook log:', err.message);
-          return reject(new Error('Failed to create webhook log'));
-        }
-        console.log(`Webhook log created with ID: ${this.lastID}`);
-        resolve({
-          id: this.lastID,
-          payload: payloadString,
-          status,
-          destinationsSent,
-          errorMessage,
-          endpointSlug,
-          responseTime,
-          timestamp: new Date().toISOString()
-        });
-      }
-    );
-  });
+// Log webhook (main function)
+const logWebhook = async (payload, status, destinationsSent, errorMessage = null) => {
+  try {
+    const logId = await createWebhookLog(payload, status, destinationsSent, errorMessage);
+    console.log(`Webhook logged with ID: ${logId}`);
+    return logId;
+  } catch (error) {
+    console.error('Error logging webhook:', error);
+    throw error;
+  }
 };
 
 module.exports = {
   createWebhookLog,
-  logWebhook,
-  getRecentWebhookLogs,
   getWebhookStats,
+  getWebhookLogs,
+  getRecentWebhookLogs,
   getWebhookLogsByDateRange,
+  getWebhookLogById,
   getWebhookStatsByEndpoint,
-  getWebhookLogsByEndpoint
+  getWebhookLogsByEndpoint,
+  getDetailedStats,
+  logWebhook
 };

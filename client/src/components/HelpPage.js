@@ -156,12 +156,12 @@ const HelpPage = () => {
 
             <h3>URL do Webhook:</h3>
             <code className="code-block">
-              https://seu-dominio.com/api/webhook/{'{slug}'}
+              https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/{'{slug}'}
             </code>
 
             <h3>Exemplo de Uso:</h3>
             <pre className="code-block">
-{`curl -X POST https://seu-dominio.com/api/webhook/pagamentos \\
+{`curl -X POST https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/pagamentos \\
   -H "Content-Type: application/json" \\
   -d '{
     "evento": "pagamento_aprovado",
@@ -364,7 +364,7 @@ const HelpPage = () => {
               <li><strong>Configure o Webhook:</strong>
                 <ul>
                   <li>Nome: "Redistribuidor de Webhooks"</li>
-                  <li>URL: <code>https://seu-dominio.com/api/webhook/tinyerp</code></li>
+                  <li>URL: <code>https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/tinyerp</code></li>
                   <li>Eventos: Selecione os eventos desejados</li>
                   <li>Método: POST</li>
                 </ul>

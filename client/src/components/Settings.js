@@ -16,6 +16,37 @@ const Settings = ({ onSettingsChange }) => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [backendStatus, setBackendStatus] = useState({
+    isOnline: false,
+    database: 'PostgreSQL',
+    lastCheck: null
+  });
+
+  // Função para verificar status do backend
+  const checkBackendStatus = async () => {
+    try {
+      const response = await axios.get(config.getBackendUrl() + '/health', {
+        timeout: 5000
+      });
+      
+      if (response.status === 200) {
+        setBackendStatus(prev => ({
+          ...prev,
+          isOnline: true,
+          lastCheck: new Date().toLocaleTimeString('pt-BR')
+        }));
+        return true;
+      }
+    } catch (error) {
+      console.error('Backend status check failed:', error);
+      setBackendStatus(prev => ({
+        ...prev,
+        isOnline: false,
+        lastCheck: new Date().toLocaleTimeString('pt-BR')
+      }));
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Get current webhook URL - use backend URL in production, localhost in development
@@ -29,6 +60,14 @@ const Settings = ({ onSettingsChange }) => {
       console.log('Settings updated:', newSettings);
       return newSettings;
     });
+
+    // Verificar status do backend
+    checkBackendStatus();
+
+    // Verificar status a cada 30 segundos
+    const statusInterval = setInterval(checkBackendStatus, 30000);
+
+    return () => clearInterval(statusInterval);
   }, []);
 
   const showMessage = (type, text) => {
@@ -242,11 +281,13 @@ const Settings = ({ onSettingsChange }) => {
             <div className="info-grid">
               <div className="info-item">
                 <strong>Status:</strong>
-                <span>Ativo 🟢</span>
+                <span className={backendStatus.isOnline ? 'status-online' : 'status-offline'}>
+                  {backendStatus.isOnline ? 'Ativo 🟢' : 'Offline 🔴'}
+                </span>
               </div>
               <div className="info-item">
                 <strong>Porta Backend:</strong>
-                <span>3002</span>
+                <span>3001</span>
               </div>
               <div className="info-item">
                 <strong>Porta Frontend:</strong>
@@ -254,7 +295,11 @@ const Settings = ({ onSettingsChange }) => {
               </div>
               <div className="info-item">
                 <strong>Banco de Dados:</strong>
-                <span>SQLite</span>
+                <span>{backendStatus.database}</span>
+              </div>
+              <div className="info-item">
+                <strong>Última Verificação:</strong>
+                <span>{backendStatus.lastCheck || 'Nunca'}</span>
               </div>
             </div>
           </div>

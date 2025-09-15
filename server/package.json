@@ -4,10 +4,10 @@
   "description": "Webhook redistribution application",
   "main": "server/app.js",
   "scripts": {
-    "start": "node server/app.js",
-    "dev": "nodemon server/app.js",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "client": "cd client && npm start",
-    "server": "node server/app.js"
+    "server": "node app.js"
   },
   "keywords": [
     "webhook",
@@ -25,7 +25,7 @@
     "express": "^4.18.2",
     "express-rate-limit": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.6"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

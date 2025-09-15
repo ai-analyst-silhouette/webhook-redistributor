@@ -91,16 +91,31 @@ const Sidebar = ({ onNavigate, currentView, onNewRedirecionamento }) => {
   };
 
   const handleToggleCollapse = () => {
-    setCollapsed(!collapsed);
+    const newCollapsed = !collapsed;
+    setCollapsed(newCollapsed);
     
-    // Ajustar o conteúdo após a animação
-    setTimeout(() => {
-      // Disparar evento customizado para notificar outros componentes
-      window.dispatchEvent(new CustomEvent('sidebarToggle', { 
-        detail: { collapsed: !collapsed } 
-      }));
-    }, 300); // Aguardar a animação do CSS
+    // Ajustar grid layout
+    const appLayout = document.querySelector('.app-layout');
+    if (appLayout) {
+      if (newCollapsed) {
+        appLayout.style.gridTemplateColumns = '60px 1fr';
+      } else {
+        appLayout.style.gridTemplateColumns = 'var(--sidebar-width) 1fr';
+      }
+    }
   };
+  
+  // Definir estado inicial do grid
+  useEffect(() => {
+    const appLayout = document.querySelector('.app-layout');
+    if (appLayout) {
+      if (collapsed) {
+        appLayout.style.gridTemplateColumns = '60px 1fr';
+      } else {
+        appLayout.style.gridTemplateColumns = 'var(--sidebar-width) 1fr';
+      }
+    }
+  }, [collapsed]);
 
   const handleHelpToggle = () => {
     if (onNavigate) {

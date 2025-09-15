@@ -1,27 +1,24 @@
 .redirecionamento-manager {
-  padding: 20px;
+  padding: 5px 15px 15px 15px; /* Menos padding superior para aproximar do header */
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: calc(100vw - 350px); /* Margem para sidebar + espaço de respiro */
+  margin: 0 auto; /* Centralizar quando menor que max-width */
 }
 
-/* Centralização específica quando sidebar colapsado */
-.app-sidebar.collapsed + .app-main .redirecionamento-manager {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  text-align: left;
-}
+/* Regra removida - agora controlado pelo layout.css */
 
 .section-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between; /* Distribuir espaço entre título e ações */
   align-items: center;
-  margin-bottom: 0;
+  margin: 0 auto 0 auto; /* Centralizar horizontalmente */
   padding-bottom: 8px;
   border-bottom: 2px solid #e0e0e0;
   width: 100%;
-  max-width: 1200px;
+  max-width: calc(100vw - 350px); /* Mesma largura máxima do container pai */
+  min-width: 0; /* Permitir shrinking dos elementos filhos */
+  flex-wrap: wrap; /* Quebrar linha em telas pequenas */
+  gap: 10px; /* Espaço entre elementos quando quebram linha */
 }
 
 .section-header h2 {
@@ -57,7 +54,8 @@
 .header-actions {
   display: flex;
   gap: 6px;
-  margin-left: auto;
+  flex-shrink: 0; /* Não permitir que os botões encolham */
+  flex-wrap: wrap; /* Permitir quebra de linha dos botões */
 }
 
 .header-actions .btn {
@@ -190,10 +188,17 @@
     flex-direction: column;
     gap: 15px;
     align-items: stretch;
+    padding-bottom: 15px; /* Mais espaço quando empilhado */
   }
   
   .header-actions {
     justify-content: center;
+    width: 100%;
+  }
+  
+  .header-actions .btn {
+    flex: 1; /* Botões ocupam espaço igual */
+    min-width: 120px; /* Largura mínima */
   }
   
   .redirecionamentos-grid {
