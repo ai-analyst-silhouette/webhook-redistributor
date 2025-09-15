@@ -228,7 +228,9 @@ const EditModal = ({
                 required
               />
               <IconButton
-                onClick={() => copyToClipboard(`/api/webhook/${formData.slug}`)}
+                onClick={() => copyToClipboard(process.env.NODE_ENV === 'production' 
+                  ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.slug}`
+                  : `http://localhost:3001/api/webhook/${formData.slug}`)}
                 title="Copiar URL do webhook"
                 type="copy"
               >
@@ -236,7 +238,10 @@ const EditModal = ({
               </IconButton>
             </div>
             <div className="form-help">
-              URL do webhook: <code>/api/webhook/{formData.slug}</code>
+              URL do webhook: <code>{process.env.NODE_ENV === 'production' 
+                ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.slug}`
+                : `http://localhost:3001/api/webhook/${formData.slug}`
+              }</code>
             </div>
             {errors.slug && <span className="error-message">{errors.slug}</span>}
           </div>

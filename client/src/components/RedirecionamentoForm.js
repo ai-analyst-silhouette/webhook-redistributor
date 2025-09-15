@@ -241,7 +241,10 @@ const RedirecionamentoForm = ({
           icon={Hash}
         />
         <div className="form-help">
-          <small>URL do webhook: /api/webhook/{formData.slug}</small>
+          <small>URL do webhook: {process.env.NODE_ENV === 'production' 
+            ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.slug || 'seu-slug'}`
+            : `http://localhost:3001/api/webhook/${formData.slug || 'seu-slug'}`
+          }</small>
         </div>
 
         <div className="form-group">

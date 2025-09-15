@@ -72,7 +72,9 @@ const RedirecionamentoCard = ({
   };
 
   const getWebhookUrl = () => {
-    return `/api/webhook/${redirecionamento.slug}`;
+    return process.env.NODE_ENV === 'production' 
+      ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${redirecionamento.slug}`
+      : `http://localhost:3001/api/webhook/${redirecionamento.slug}`;
   };
 
   return (
