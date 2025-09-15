@@ -27,11 +27,10 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       setLoading(true);
       setError(null);
       
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const response = await api.get(config.routes.autenticacao + '/users', {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -88,13 +87,12 @@ const UserManager = ({ onMessage, user: currentUser }) => {
     setActionLoading(prev => ({ ...prev, [id]: true }));
     
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const response = await api.put(`${config.routes.autenticacao}/users/${id}/status`, {
         ativo: !currentStatus
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -127,11 +125,10 @@ const UserManager = ({ onMessage, user: currentUser }) => {
     setActionLoading(prev => ({ ...prev, [id]: true }));
     
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const response = await api.delete(`${config.routes.autenticacao}/users/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       

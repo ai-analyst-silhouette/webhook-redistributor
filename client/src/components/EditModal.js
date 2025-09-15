@@ -137,7 +137,7 @@ const EditModal = ({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const payload = {
         ...formData,
@@ -146,7 +146,6 @@ const EditModal = ({
 
       const response = await api.put(`${config.routes.redirecionamentos}/${redirecionamento.id}`, payload, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
 

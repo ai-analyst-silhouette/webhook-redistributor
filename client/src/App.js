@@ -28,12 +28,29 @@ function App() {
   const [showNewRedirecionamento, setShowNewRedirecionamento] = useState(false);
   const [redirecionamentoManagerRef, setRedirecionamentoManagerRef] = useState(null);
 
+  // Função para validar se o token JWT ainda é válido
+  const isTokenValid = (token) => {
+    if (!token) return false;
+    
+    try {
+      // Decodificar o payload do JWT (sem verificar assinatura)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      // Verificar se o token não expirou
+      return payload.exp > currentTime;
+    } catch (error) {
+      console.error('Erro ao validar token:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Verificar se há token válido no localStorage
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
     
-    if (token && userData) {
+    if (token && userData && isTokenValid(token)) {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
@@ -44,9 +61,32 @@ function App() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
       }
+    } else if (token && !isTokenValid(token)) {
+      // Token expirado, limpar dados
+      console.log('Token expirado, redirecionando para login');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
     }
     
     setLoading(false);
+  }, []);
+
+  // Listener global para erros de autenticação
+  useEffect(() => {
+    const handleAuthError = () => {
+      console.log('Erro de autenticação detectado globalmente, redirecionando para login...');
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    };
+
+    // Adicionar listener para eventos de erro de autenticação
+    window.addEventListener('authError', handleAuthError);
+    
+    return () => {
+      window.removeEventListener('authError', handleAuthError);
+    };
   }, []);
 
   const handleLogin = (userData) => {
@@ -60,6 +100,9 @@ function App() {
     setIsAuthenticated(false);
     setCurrentView('redirecionamentos');
     setMessage({ type: 'info', text: 'Logout realizado com sucesso!' });
+    // Limpar dados do localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
   };
 
   const showMessage = (type, text) => {

@@ -47,9 +47,9 @@ const Header = ({ currentPageTitle = 'Dashboard' }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   const handleProfile = () => {

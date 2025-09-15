@@ -32,6 +32,17 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error('API Error:', error);
+    
+    // Se for erro 401 (não autorizado) ou 403 (proibido), disparar evento de erro de autenticação
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log('Erro de autenticação detectado, disparando evento global...');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      
+      // Disparar evento global para que o App.js possa lidar com o redirecionamento
+      window.dispatchEvent(new CustomEvent('authError'));
+    }
+    
     return Promise.reject(error);
   }
 );

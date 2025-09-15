@@ -64,13 +64,7 @@ const Logs = ({ onMessage, isVisible = true }) => {
       
       console.log('🌐 URL da requisição:', url);
       
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
-      
-      const response = await api.get(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get(url);
       
       if (response.data.success) {
         const newLogs = response.data.data;
@@ -106,6 +100,13 @@ const Logs = ({ onMessage, isVisible = true }) => {
       }
     } catch (err) {
       console.error('❌ Erro ao carregar logs:', err);
+      
+      // Se for erro de autenticação, não mostrar erro, apenas deixar o interceptor lidar
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.log('Erro de autenticação ao carregar logs');
+        return;
+      }
+      
       setError('Erro ao conectar com o servidor. Verifique se o backend está rodando na porta 3001.');
     } finally {
       setLoading(false);
@@ -114,19 +115,19 @@ const Logs = ({ onMessage, isVisible = true }) => {
 
   const fetchRedirecionamentos = async () => {
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
-      
-      const response = await api.get(config.routes.redirecionamentos, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get(config.routes.redirecionamentos);
       
       if (response.data.success) {
         setRedirecionamentos(response.data.data);
       }
     } catch (err) {
       console.error('Erro ao carregar redirecionamentos:', err);
+      
+      // Se for erro de autenticação, não mostrar erro, apenas deixar o interceptor lidar
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.log('Erro de autenticação ao carregar redirecionamentos para logs');
+        return;
+      }
     }
   };
 

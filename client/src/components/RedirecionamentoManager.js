@@ -37,14 +37,7 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       setLoading(true);
       setError(null);
       
-      // Simular autenticação por enquanto - em produção seria com token real
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
-      
-      const response = await api.get(config.routes.redirecionamentos, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get(config.routes.redirecionamentos);
       
       if (response.data.success) {
         setRedirecionamentos(response.data.data);
@@ -57,6 +50,13 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       }
     } catch (err) {
       console.error('Erro ao carregar redirecionamentos:', err);
+      
+      // Se for erro de autenticação, não mostrar erro, apenas deixar o interceptor lidar
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.log('Erro de autenticação ao carregar redirecionamentos');
+        return;
+      }
+      
       const errorMessage = err.response?.data?.message || err.message || 'Erro ao conectar com o servidor';
       setError(errorMessage);
       onMessage('error', errorMessage);
@@ -94,7 +94,7 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
     setActionLoading(prev => ({ ...prev, [id]: true }));
     
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const url = `${config.routes.redirecionamentos}/${id}/toggle`;
       console.log('Toggle URL:', url);
@@ -104,7 +104,6 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
         ativo: !currentStatus
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -138,11 +137,10 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
     setActionLoading(prev => ({ ...prev, [id]: true }));
     
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const response = await api.delete(`${config.routes.redirecionamentos}/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -182,14 +180,13 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
     setActionLoading(prev => ({ ...prev, [`test-${id}`]: true }));
     
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const response = await api.post(`${config.routes.redirecionamentos}/${id}/testar`, {
         teste: 'webhook de teste',
         timestamp: new Date().toISOString()
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
         }
       });
       

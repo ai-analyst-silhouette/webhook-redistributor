@@ -113,7 +113,7 @@ const UserForm = ({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      const token = localStorage.getItem('authToken') ;
       
       const payload = {
         nome: formData.nome.trim(),
@@ -130,14 +130,12 @@ const UserForm = ({
       if (isEditing) {
         response = await api.put(`${config.routes.autenticacao}/users/${user.id}`, payload, {
           headers: {
-            'Authorization': `Bearer ${token}`
           }
         });
         onUserUpdated(response.data.data);
       } else {
         response = await api.post(`${config.routes.autenticacao}/users`, payload, {
           headers: {
-            'Authorization': `Bearer ${token}`
           }
         });
         onUserAdded(response.data.data);
