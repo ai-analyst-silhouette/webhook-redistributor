@@ -12,7 +12,14 @@ function requirePermission(permission) {
     try {
       const user = req.user;
       
+      console.log('🔍 Verificando permissão:', {
+        permission,
+        user: user ? { id: user.id, role: user.role, name: user.name } : null,
+        hasPermission: user ? hasPermission(user, permission) : false
+      });
+      
       if (!user) {
+        console.log('❌ Usuário não autenticado');
         return res.status(401).json({
           error: messages.ERROR.UNAUTHORIZED,
           code: 'UNAUTHORIZED'
@@ -20,6 +27,11 @@ function requirePermission(permission) {
       }
 
       if (!hasPermission(user, permission)) {
+        console.log('❌ Usuário não tem permissão:', {
+          userRole: user.role,
+          requiredPermission: permission,
+          userPermissions: user.role ? require('../config/permissions').getPermissionsByRole(user.role) : []
+        });
         return res.status(403).json({
           error: `Acesso negado. Permissão necessária: ${permission}`,
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -27,6 +39,7 @@ function requirePermission(permission) {
         });
       }
 
+      console.log('✅ Permissão concedida');
       next();
     } catch (error) {
       console.error('Erro na verificação de permissão:', error);

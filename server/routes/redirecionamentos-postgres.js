@@ -119,7 +119,7 @@ router.get('/:id', requirePermission('visualizar_redirecionamentos'), async (req
  * POST /api/redirecionamentos
  * Criar novo redirecionamento
  */
-router.post('/', requirePermission('criar_redirecionamentos'), async (req, res) => {
+router.post('/', requirePermission('criar_redirecionamento'), async (req, res) => {
   try {
     const { nome, slug, descricao, urls, ativo = true } = req.body;
     
@@ -174,7 +174,7 @@ router.post('/', requirePermission('criar_redirecionamentos'), async (req, res) 
  * PUT /api/redirecionamentos/:id
  * Atualizar redirecionamento
  */
-router.put('/:id', requirePermission('editar_redirecionamentos'), async (req, res) => {
+router.put('/:id', requirePermission('editar_redirecionamento'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, slug, descricao, urls, ativo } = req.body;
@@ -243,7 +243,7 @@ router.put('/:id', requirePermission('editar_redirecionamentos'), async (req, re
  * DELETE /api/redirecionamentos/:id
  * Deletar redirecionamento
  */
-router.delete('/:id', requirePermission('deletar_redirecionamentos'), async (req, res) => {
+router.delete('/:id', requirePermission('excluir_redirecionamento'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -284,7 +284,7 @@ router.delete('/:id', requirePermission('deletar_redirecionamentos'), async (req
  * POST /api/redirecionamentos/:id/testar
  * Testar redirecionamento
  */
-router.post('/:id/testar', requirePermission('testar_redirecionamentos'), async (req, res) => {
+router.post('/:id/testar', requirePermission('testar_redirecionamento'), async (req, res) => {
   try {
     const { id } = req.params;
     const { payload = {} } = req.body;
