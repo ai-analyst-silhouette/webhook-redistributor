@@ -1,5 +1,5 @@
 // Versão da aplicação - atualizada automaticamente durante o build
-export const VERSION = '1.0.2';
+export const VERSION = '1.0.8';
 
 // Informações adicionais da versão
 export const VERSION_INFO = {
