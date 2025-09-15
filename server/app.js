@@ -31,7 +31,8 @@ const PORT = process.env.PORT || 3001; // Default to port 3001, but can be overr
 
 // Trust proxy for rate limiting behind reverse proxy (Traefik)
 // Configure trust proxy to handle X-Forwarded-For headers properly
-app.set('trust proxy', true);
+// Use specific proxy count instead of true for better security
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors());

@@ -17,6 +17,8 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 // Initialize database tables
 const initDatabase = () => {
   return new Promise((resolve, reject) => {
+    console.log('Iniciando criação das tabelas...');
+    
     // Create redirecionamentos table (new simplified structure)
     const createRedirecionamentosTable = `
       CREATE TABLE IF NOT EXISTS redirecionamentos (
@@ -72,6 +74,7 @@ const initDatabase = () => {
               )
             `;
             
+            console.log('Criando tabela usuarios...');
             db.run(createUsersTable, (err) => {
               if (err) {
                 console.error('Erro ao criar tabela usuarios:', err.message);
@@ -102,12 +105,25 @@ const initDatabase = () => {
                   } else {
                     console.log('Tabela audit_log criada ou já existe');
                     
-                    // Migrate data from old tables to new redirecionamentos structure
-                    migrateDataToRedirecionamentos().then(() => {
-                      resolve();
-                    }).catch((migrateErr) => {
-                      console.error('Erro na migração de dados:', migrateErr);
-                      reject(migrateErr);
+                    // Verify that usuarios table was created successfully
+                    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'", (err, row) => {
+                      if (err) {
+                        console.error('Erro ao verificar tabela usuarios:', err);
+                        reject(err);
+                      } else if (!row) {
+                        console.error('Tabela usuarios não foi criada!');
+                        reject(new Error('Tabela usuarios não foi criada'));
+                      } else {
+                        console.log('Tabela usuarios verificada com sucesso');
+                        
+                        // Migrate data from old tables to new redirecionamentos structure
+                        migrateDataToRedirecionamentos().then(() => {
+                          resolve();
+                        }).catch((migrateErr) => {
+                          console.error('Erro na migração de dados:', migrateErr);
+                          reject(migrateErr);
+                        });
+                      }
                     });
                   }
                 });
