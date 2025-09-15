@@ -4,6 +4,7 @@ const { db } = require('../database/init');
 const { logEndpointUsage, logEndpointResponse, getDetailedEndpointStats } = require('../middleware/endpointLogger');
 const logs = require('../database/logs');
 const messages = require('../config/messages');
+const { toBrazilianTime } = require('../utils/timezone');
 
 // POST /api/webhook - Receive webhook payload (default redirecionamento)
 router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
@@ -13,7 +14,7 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
 
   try {
     console.log('=== WEBHOOK RECEIVED (DEFAULT REDIRECIONAMENTO) ===');
-    console.log('Timestamp:', new Date().toISOString());
+    console.log('Timestamp:', toBrazilianTime());
     console.log('Headers:', req.headers);
     console.log('Body:', JSON.stringify(req.body, null, 2));
     console.log('Query params:', req.query);
@@ -39,7 +40,7 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
     const response = {
       success: true,
       message: messages.SUCCESS.WEBHOOK_RECEIVED,
-      timestamp: new Date().toISOString(),
+      timestamp: toBrazilianTime(),
       receivedData: { headers: req.headers, body: req.body, query: req.query },
       redistribution: {
         attempted: redistributionResults.length,
@@ -90,7 +91,7 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
 
   try {
     console.log(`=== WEBHOOK RECEIVED (REDIRECIONAMENTO: ${slug}) ===`);
-    console.log('Timestamp:', new Date().toISOString());
+    console.log('Timestamp:', toBrazilianTime());
     console.log('Headers:', req.headers);
     console.log('Body:', JSON.stringify(req.body, null, 2));
     console.log('Query params:', req.query);
@@ -124,7 +125,7 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
     const response = {
       success: true,
       message: messages.SUCCESS.WEBHOOK_RECEIVED,
-      timestamp: new Date().toISOString(),
+      timestamp: toBrazilianTime(),
       redirecionamento: {
         slug: slug,
         nome: 'Redirecionamento Personalizado'
@@ -204,7 +205,7 @@ router.get('/:slug', async (req, res) => {
     
     res.json({
       message: `Webhook endpoint '${slug}' is ready`,
-      timestamp: new Date().toISOString(),
+      timestamp: toBrazilianTime(),
       status: 'active',
       endpoint: {
         id: endpoint.id,
@@ -217,7 +218,7 @@ router.get('/:slug', async (req, res) => {
   } catch (error) {
     res.status(404).json({
       message: `Webhook endpoint '${slug}' not found`,
-      timestamp: new Date().toISOString(),
+      timestamp: toBrazilianTime(),
       status: 'not_found'
     });
   }
@@ -256,7 +257,7 @@ async function routeToDefaultRedirecionamento(payload, headers, query) {
     }
 
     console.log(`=== ROUTING WEBHOOK TO REDIRECIONAMENTO: ${redirecionamento.slug} ===`);
-    console.log('Timestamp:', new Date().toISOString());
+    console.log('Timestamp:', toBrazilianTime());
     console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
     console.log('==========================================');
     console.log(`✅ Redirecionamento encontrado: ${redirecionamento.nome} (${redirecionamento.slug})`);
@@ -322,7 +323,7 @@ async function routeToRedirecionamento(slug, payload, headers, query) {
     }
 
     console.log(`=== ROUTING WEBHOOK TO REDIRECIONAMENTO: ${redirecionamento.slug} ===`);
-    console.log('Timestamp:', new Date().toISOString());
+    console.log('Timestamp:', toBrazilianTime());
     console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
     console.log('==========================================');
     console.log(`✅ Redirecionamento encontrado: ${redirecionamento.nome} (${redirecionamento.slug})`);
@@ -389,7 +390,7 @@ async function redistributeToUrls(urls, payload, headers, redirecionamentoSlug) 
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': 'Webhook-Redistributor/1.0',
-          'X-Redistributed-At': new Date().toISOString(),
+          'X-Redistributed-At': toBrazilianTime(),
           'X-Redistributed-From': 'webhook-redistributor'
         },
         timeout: 10000

@@ -1,4 +1,5 @@
 const { db } = require('./init');
+const { toBrazilianTime } = require('../utils/timezone');
 
 // Create a new webhook log entry
 const createWebhookLog = (payload, status, destinationsSent, errorMessage = null) => {
@@ -20,7 +21,7 @@ const createWebhookLog = (payload, status, destinationsSent, errorMessage = null
           status,
           destinos_enviados: destinationsSent,
           mensagem_erro: errorMessage,
-          recebido_em: new Date().toISOString()
+          recebido_em: toBrazilianTime()
         });
       }
     );

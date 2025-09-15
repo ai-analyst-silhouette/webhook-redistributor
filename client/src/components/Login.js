@@ -200,11 +200,6 @@ const Login = ({ onLogin }) => {
           </div>
         )}
 
-        <div className="login-info">
-          <p><strong>Usuário padrão:</strong></p>
-          <p>E-mail: admin@webhook.local</p>
-          <p>Senha: admin123</p>
-        </div>
       </div>
     </div>
   );

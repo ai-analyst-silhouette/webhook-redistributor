@@ -15,6 +15,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { initializeDatabase } = require('./database/init');
+const { toBrazilianTime } = require('./utils/timezone');
 
 // Import API routes
 const authRoutes = require('./routes/auth');              // Authentication routes
@@ -55,7 +56,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'saudável',
-    timestamp: new Date().toISOString()
+    timestamp: toBrazilianTime()
   });
 });
 
