@@ -1,5 +1,10 @@
+import { VERSION } from './version';
+
 // Configuração da API
 const config = {
+  // Versão da aplicação
+  version: process.env.REACT_APP_VERSION || VERSION,
+  
   // URL da API baseada no ambiente
   apiUrl: process.env.REACT_APP_API_URL || 
     (process.env.NODE_ENV === 'production' 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import config from '../../config';
 import './Sidebar.css';
 
 // Importar ícones da pasta assets
@@ -248,7 +249,7 @@ const Sidebar = ({ onNavigate, currentView, onNewRedirecionamento }) => {
                   <span className="status-text">Sistema Online</span>
                 </div>
                 <div className="system-version">
-                  v1.0.0
+                  v{config.version}
                 </div>
               </div>
             </div>

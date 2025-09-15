@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TrendingUp, CheckCircle, XCircle, Calendar, Target, Activity } from 'lucide-react';
 import api from '../api';
+import config from '../config';
 import Skeleton from './ui/Skeleton';
 import ProgressBar from './ui/ProgressBar';
 import estatisticaIcon from '../assets/icons/estatistica.png';
@@ -32,10 +33,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
       
       const token = localStorage.getItem('authToken') ;
       
-      const response = await api.get('/api/logs-webhook/stats', {
-        headers: {
-        }
-      });
+      const response = await api.get(config.routes.logs + '/stats');
       
       if (response.data.success) {
         setStats(response.data.data);
@@ -153,7 +151,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <TrendingUp size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-value">{formatNumber(stats.total)}</div>
+            <div className="stat-value">{formatNumber(stats?.total || 0)}</div>
             <div className="stat-label">Total de Webhooks</div>
             <div className="stat-description">Recebidos desde sempre</div>
           </div>
@@ -164,12 +162,12 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <CheckCircle size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-value">{formatNumber(stats.successful)}</div>
+            <div className="stat-value">{formatNumber(stats?.successful || 0)}</div>
             <div className="stat-label">Bem-sucedidos</div>
             <div className="stat-description">Processados sem erros</div>
             <ProgressBar 
-              value={stats.successful} 
-              max={stats.total} 
+              value={stats?.successful || 0} 
+              max={stats?.total || 1} 
               variant="success" 
               size="sm"
               className="stat-progress"
@@ -182,12 +180,12 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <XCircle size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-value">{formatNumber(stats.errors)}</div>
+            <div className="stat-value">{formatNumber(stats?.errors || 0)}</div>
             <div className="stat-label">Erros</div>
             <div className="stat-description">Falhas no processamento</div>
             <ProgressBar 
-              value={stats.errors} 
-              max={stats.total} 
+              value={stats?.errors || 0} 
+              max={stats?.total || 1} 
               variant="error" 
               size="sm"
               className="stat-progress"
@@ -200,7 +198,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
             <Calendar size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-value">{formatNumber(stats.today)}</div>
+            <div className="stat-value">{formatNumber(stats?.today || 0)}</div>
             <div className="stat-label">Hoje</div>
             <div className="stat-description">Recebidos hoje</div>
           </div>
@@ -213,14 +211,14 @@ const Stats = ({ onMessage, isVisible = true }) => {
           <div className="stat-content">
             <div 
               className="stat-value"
-              style={{ color: getSuccessRateColor(stats.success_rate) }}
+              style={{ color: getSuccessRateColor(stats?.success_rate || 0) }}
             >
-              {stats.success_rate}%
+              {stats?.success_rate || 0}%
             </div>
             <div className="stat-label">Taxa de Sucesso</div>
             <div className="stat-description">Desempenho geral</div>
             <ProgressBar 
-              value={parseFloat(stats.success_rate)} 
+              value={parseFloat(stats?.success_rate || 0)} 
               max={100} 
               variant="primary" 
               size="sm"
@@ -235,7 +233,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
           </div>
           <div className="stat-content">
             <div className="stat-value">
-              {stats.total > 0 ? Math.round(stats.successful / stats.total * 100) : 0}%
+              {stats?.total > 0 ? Math.round((stats?.successful || 0) / stats.total * 100) : 0}%
             </div>
             <div className="stat-label">Eficiência</div>
             <div className="stat-description">Relação sucesso vs total</div>
@@ -247,17 +245,17 @@ const Stats = ({ onMessage, isVisible = true }) => {
         <h3>📋 Resumo</h3>
         <div className="summary-content">
           <p>
-            <strong>Total de webhooks processados:</strong> {formatNumber(stats.total)}
+            <strong>Total de webhooks processados:</strong> {formatNumber(stats?.total || 0)}
           </p>
           <p>
             <strong>Taxa de sucesso:</strong> 
-            <span style={{ color: getSuccessRateColor(stats.success_rate) }}>
-              {stats.success_rate}%
+            <span style={{ color: getSuccessRateColor(stats?.success_rate || 0) }}>
+              {stats?.success_rate || 0}%
             </span>
-            {' '}({formatNumber(stats.successful)} bem-sucedidos, {formatNumber(stats.errors)} erros)
+            {' '}({formatNumber(stats?.successful || 0)} bem-sucedidos, {formatNumber(stats?.errors || 0)} erros)
           </p>
           <p>
-            <strong>Atividade de hoje:</strong> {formatNumber(stats.today)} webhooks recebidos
+            <strong>Atividade de hoje:</strong> {formatNumber(stats?.today || 0)} webhooks recebidos
           </p>
         </div>
       </div>

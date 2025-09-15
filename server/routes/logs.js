@@ -27,7 +27,7 @@ router.get('/', authenticateToken, requirePermission('visualizar_logs'), async (
 });
 
 // GET /api/logs/stats - Get webhook statistics
-router.get('/stats', authenticateToken, requirePermission('visualizar_estatisticas'), async (req, res) => {
+router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const stats = await logs.getWebhookStats();
     
