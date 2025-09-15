@@ -239,12 +239,18 @@ async function routeToDefaultRedirecionamento(payload, headers, query) {
       };
     }
 
-    const urls = JSON.parse(redirecionamento.urls || '[]');
+    // Buscar destinos ativos do redirecionamento
+    const destinosResult = await query(
+      'SELECT url FROM redirecionamento_destinos WHERE redirecionamento_id = $1 AND ativo = true ORDER BY ordem',
+      [redirecionamento.id]
+    );
+    
+    const urls = destinosResult.rows.map(row => row.url);
     
     if (urls.length === 0) {
       return {
         success: false,
-        message: 'Redirecionamento padrão não possui URLs configuradas',
+        message: 'Redirecionamento padrão não possui destinos ativos configurados',
         statusCode: 400
       };
     }
@@ -298,12 +304,18 @@ async function routeToRedirecionamento(slug, payload, headers, query) {
       };
     }
 
-    const urls = JSON.parse(redirecionamento.urls || '[]');
+    // Buscar destinos ativos do redirecionamento
+    const destinosResult = await query(
+      'SELECT url FROM redirecionamento_destinos WHERE redirecionamento_id = $1 AND ativo = true ORDER BY ordem',
+      [redirecionamento.id]
+    );
+    
+    const urls = destinosResult.rows.map(row => row.url);
     
     if (urls.length === 0) {
       return {
         success: false,
-        message: `Redirecionamento '${slug}' não possui URLs configuradas`,
+        message: `Redirecionamento '${slug}' não possui destinos ativos configurados`,
         statusCode: 400
       };
     }

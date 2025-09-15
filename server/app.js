@@ -20,7 +20,7 @@ const { toBrazilianTime } = require('./utils/timezone');
 // Import API routes
 const authRoutes = require('./routes/auth-postgres');     // Authentication routes
 const webhookRoutes = require('./routes/webhook');        // Webhook reception and redistribution
-const redirecionamentosRoutes = require('./routes/redirecionamentos-postgres'); // Redirecionamentos CRUD operations
+const redirecionamentosRoutes = require('./routes/redirecionamentos-normalized'); // Redirecionamentos CRUD operations (normalized)
 const usuariosRoutes = require('./routes/usuarios');      // User management
 const logsRoutes = require('./routes/logs');              // Logs and statistics
 const exportRoutes = require('./routes/export');          // Export/import configuration
