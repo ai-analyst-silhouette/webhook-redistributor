@@ -107,7 +107,18 @@ const Logs = ({ onMessage, isVisible = true }) => {
         return;
       }
       
-      setError('Erro ao conectar com o servidor. Verifique se o backend está rodando na porta 3001.');
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao conectar com o servidor';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

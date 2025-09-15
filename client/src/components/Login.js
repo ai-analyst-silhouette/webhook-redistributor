@@ -57,8 +57,22 @@ const Login = ({ onLogin }) => {
       }
     } catch (err) {
       console.error('Erro no login:', err);
-      const errorMessage = err.response?.data?.message || 'Erro ao conectar com o servidor';
-      setError(errorMessage);
+      
+      // Verificar se é erro de credenciais inválidas
+      if (err.response?.status === 401) {
+        setError('Email ou senha incorretos');
+      } else if (err.response?.status === 403) {
+        setError('Acesso negado. Verifique suas credenciais');
+      } else if (err.response?.status === 429) {
+        setError('Muitas tentativas de login. Tente novamente em 15 minutos');
+      } else if (err.response?.data?.error) {
+        // Usar a mensagem de erro específica do backend
+        setError(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Erro ao conectar com o servidor');
+      }
     } finally {
       setLoading(false);
     }

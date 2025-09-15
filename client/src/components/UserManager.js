@@ -44,7 +44,18 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       }
     } catch (err) {
       console.error('Erro ao carregar usuários:', err);
-      const errorMessage = err.response?.data?.message || 'Erro ao conectar com o servidor';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao conectar com o servidor';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       onMessage('error', errorMessage);
     } finally {
@@ -110,7 +121,18 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       }
     } catch (error) {
       console.error('Erro ao alterar status do usuário:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao alterar status';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao alterar status';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: false }));
@@ -140,7 +162,18 @@ const UserManager = ({ onMessage, user: currentUser }) => {
       }
     } catch (error) {
       console.error('Erro ao remover usuário:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao remover usuário';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao remover usuário';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: false }));

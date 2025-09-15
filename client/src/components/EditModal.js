@@ -154,7 +154,18 @@ const EditModal = ({
 
     } catch (error) {
       console.error('Erro ao atualizar redirecionamento:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao atualizar redirecionamento';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao atualizar redirecionamento';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);

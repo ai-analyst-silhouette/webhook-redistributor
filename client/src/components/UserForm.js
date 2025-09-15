@@ -143,7 +143,18 @@ const UserForm = ({
 
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao salvar usuário';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao salvar usuário';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);

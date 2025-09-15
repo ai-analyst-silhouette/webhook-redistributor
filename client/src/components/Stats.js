@@ -48,7 +48,19 @@ const Stats = ({ onMessage, isVisible = true }) => {
       }
     } catch (err) {
       console.error('Error fetching stats:', err);
-      setError('Error connecting to server');
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao conectar com o servidor';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       if (!isAutoRefresh) {
         setLoading(false);

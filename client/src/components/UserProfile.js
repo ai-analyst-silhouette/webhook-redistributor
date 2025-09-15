@@ -64,7 +64,18 @@ const UserProfile = ({ user, onLogout }) => {
         setError(response.data.message || 'Erro ao alterar senha');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao alterar senha');
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao alterar senha';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

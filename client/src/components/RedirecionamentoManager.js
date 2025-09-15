@@ -57,7 +57,17 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
         return;
       }
       
-      const errorMessage = err.response?.data?.message || err.message || 'Erro ao conectar com o servidor';
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao conectar com o servidor';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       onMessage('error', errorMessage);
     } finally {
@@ -121,7 +131,18 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       }
     } catch (error) {
       console.error('Erro ao alterar status do redirecionamento:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao alterar status';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao alterar status';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: false }));
@@ -152,7 +173,18 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       }
     } catch (error) {
       console.error('Erro ao remover redirecionamento:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao remover redirecionamento';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao remover redirecionamento';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [id]: false }));
@@ -200,7 +232,18 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       }
     } catch (error) {
       console.error('Erro ao testar redirecionamento:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao testar redirecionamento';
+      
+      // Usar mensagem específica do backend
+      let errorMessage = 'Erro ao testar redirecionamento';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       onMessage('error', errorMessage);
     } finally {
       setActionLoading(prev => ({ ...prev, [`test-${id}`]: false }));
