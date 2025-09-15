@@ -89,11 +89,11 @@ const logEndpointToDatabase = async (req, statusCode, processingTime, responseDa
   try {
     const { logWebhook } = require('../database/logs');
     
-    // Log to webhook_logs table with endpoint information
+    // Log to logs_webhook table with endpoint information
     await logWebhook(
       JSON.stringify(req.body),
       statusCode >= 200 && statusCode < 300 ? 'success' : 'error',
-      0, // destinations_sent will be updated by redistributor
+      0, // destinos_enviados will be updated by redistributor
       statusCode >= 200 && statusCode < 300 ? null : `HTTP ${statusCode}`,
       req.endpointInfo.slug,
       processingTime

@@ -6,7 +6,7 @@ const createWebhookLog = (payload, status, destinationsSent, errorMessage = null
     const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
     
     db.run(
-      'INSERT INTO webhook_logs (payload, status, destinations_sent, error_message) VALUES (?, ?, ?, ?)',
+      'INSERT INTO logs_webhook (payload, status, destinos_enviados, mensagem_erro) VALUES (?, ?, ?, ?)',
       [payloadString, status, destinationsSent, errorMessage],
       function(err) {
         if (err) {
@@ -18,9 +18,9 @@ const createWebhookLog = (payload, status, destinationsSent, errorMessage = null
           id: this.lastID,
           payload: payloadString,
           status,
-          destinations_sent: destinationsSent,
-          error_message: errorMessage,
-          received_at: new Date().toISOString()
+          destinos_enviados: destinationsSent,
+          mensagem_erro: errorMessage,
+          recebido_em: new Date().toISOString()
         });
       }
     );
@@ -31,7 +31,7 @@ const createWebhookLog = (payload, status, destinationsSent, errorMessage = null
 const getRecentWebhookLogs = (limit = 50) => {
   return new Promise((resolve, reject) => {
     db.all(
-      'SELECT * FROM webhook_logs ORDER BY received_at DESC LIMIT ?',
+      'SELECT * FROM logs_webhook ORDER BY recebido_em DESC LIMIT ?',
       [limit],
       (err, rows) => {
         if (err) {
@@ -50,7 +50,7 @@ const getWebhookStats = () => {
     const stats = {};
     
     // Get total webhooks received
-    db.get('SELECT COUNT(*) as total FROM webhook_logs', (err, row) => {
+    db.get('SELECT COUNT(*) as total FROM logs_webhook', (err, row) => {
       if (err) {
         console.error('Error fetching total webhooks:', err.message);
         return reject(new Error('Failed to fetch total webhooks'));
@@ -58,7 +58,7 @@ const getWebhookStats = () => {
       stats.total = row.total;
       
       // Get successful webhooks
-      db.get('SELECT COUNT(*) as successful FROM webhook_logs WHERE status = "success"', (err, row) => {
+      db.get('SELECT COUNT(*) as successful FROM logs_webhook WHERE status = "success"', (err, row) => {
         if (err) {
           console.error('Error fetching successful webhooks:', err.message);
           return reject(new Error('Failed to fetch successful webhooks'));
@@ -66,7 +66,7 @@ const getWebhookStats = () => {
         stats.successful = row.successful;
         
         // Get error webhooks
-        db.get('SELECT COUNT(*) as errors FROM webhook_logs WHERE status = "error"', (err, row) => {
+        db.get('SELECT COUNT(*) as errors FROM logs_webhook WHERE status = "error"', (err, row) => {
           if (err) {
             console.error('Error fetching error webhooks:', err.message);
             return reject(new Error('Failed to fetch error webhooks'));
@@ -74,7 +74,7 @@ const getWebhookStats = () => {
           stats.errors = row.errors;
           
           // Get today's webhooks
-          db.get('SELECT COUNT(*) as today FROM webhook_logs WHERE DATE(received_at) = DATE("now")', (err, row) => {
+          db.get('SELECT COUNT(*) as today FROM logs_webhook WHERE DATE(recebido_em) = DATE("now")', (err, row) => {
             if (err) {
               console.error('Error fetching today\'s webhooks:', err.message);
               return reject(new Error('Failed to fetch today\'s webhooks'));
@@ -96,7 +96,7 @@ const getWebhookStats = () => {
 const getWebhookLogsByDateRange = (startDate, endDate, limit = 100) => {
   return new Promise((resolve, reject) => {
     db.all(
-      'SELECT * FROM webhook_logs WHERE received_at BETWEEN ? AND ? ORDER BY received_at DESC LIMIT ?',
+      'SELECT * FROM logs_webhook WHERE recebido_em BETWEEN ? AND ? ORDER BY recebido_em DESC LIMIT ?',
       [startDate, endDate, limit],
       (err, rows) => {
         if (err) {
@@ -119,9 +119,9 @@ const getWebhookStatsByEndpoint = (startDate, endpoint = null) => {
         AVG(wl.response_time) as avg_response_time,
         SUM(CASE WHEN wl.status = 200 THEN 1 ELSE 0 END) as success_count,
         SUM(CASE WHEN wl.status >= 400 THEN 1 ELSE 0 END) as error_count,
-        MAX(wl.received_at) as last_used
-      FROM webhook_logs wl
-      WHERE wl.received_at >= ?
+        MAX(wl.recebido_em) as last_used
+      FROM logs_webhook wl
+      WHERE wl.recebido_em >= ?
     `;
     
     const params = [startDate.toISOString()];
@@ -146,8 +146,8 @@ const getWebhookStatsByEndpoint = (startDate, endpoint = null) => {
           AVG(response_time) as avg_response_time,
           SUM(CASE WHEN status = 200 THEN 1 ELSE 0 END) as total_success,
           SUM(CASE WHEN status >= 400 THEN 1 ELSE 0 END) as total_errors
-        FROM webhook_logs 
-        WHERE received_at >= ?
+        FROM logs_webhook 
+        WHERE recebido_em >= ?
       `;
       
       const overallParams = [startDate.toISOString()];
@@ -194,7 +194,7 @@ const getWebhookLogsByEndpoint = (endpointSlug, limit = 50, status = null) => {
         wl.*,
         we.name as endpoint_name,
         we.slug as endpoint_slug
-      FROM webhook_logs wl
+      FROM logs_webhook wl
       LEFT JOIN webhook_endpoints we ON wl.endpoint_slug = we.slug
       WHERE wl.endpoint_slug = ?
     `;
@@ -209,7 +209,7 @@ const getWebhookLogsByEndpoint = (endpointSlug, limit = 50, status = null) => {
       }
     }
     
-    query += ' ORDER BY wl.received_at DESC LIMIT ?';
+    query += ' ORDER BY wl.recebido_em DESC LIMIT ?';
     params.push(limit);
     
     db.all(query, params, (err, rows) => {
@@ -222,9 +222,9 @@ const getWebhookLogsByEndpoint = (endpointSlug, limit = 50, status = null) => {
         id: row.id,
         payload: row.payload,
         status: row.status,
-        destinations_sent: row.destinations_sent,
-        error_message: row.error_message,
-        received_at: row.received_at,
+        destinos_enviados: row.destinos_enviados,
+        mensagem_erro: row.mensagem_erro,
+        recebido_em: row.recebido_em,
         response_time: row.response_time,
         endpoint_slug: row.endpoint_slug,
         endpoint_name: row.endpoint_name || 'Default'
@@ -241,7 +241,7 @@ const logWebhook = (payload, status, destinationsSent, errorMessage = null, endp
     const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
     
     db.run(
-      'INSERT INTO webhook_logs (payload, status, destinations_sent, error_message, endpoint_slug, response_time) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO logs_webhook (payload, status, destinos_enviados, mensagem_erro, endpoint_slug, response_time) VALUES (?, ?, ?, ?, ?, ?)',
       [payloadString, status, destinationsSent, errorMessage, endpointSlug, responseTime],
       function(err) {
         if (err) {

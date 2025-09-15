@@ -6,7 +6,7 @@
 set -e
 
 # Configurações
-DOCKER_USERNAME="ai-analyst-silhouette"
+DOCKER_USERNAME="aianalystsilhouette"
 BACKEND_IMAGE="webhook-redistributor-backend"
 FRONTEND_IMAGE="webhook-redistributor-frontend"
 VERSION=${1:-latest}
