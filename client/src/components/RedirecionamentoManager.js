@@ -40,7 +40,13 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       const response = await api.get(config.routes.redirecionamentos);
       
       if (response.data.success) {
-        setRedirecionamentos(response.data.data);
+        // Converter destinos para URLs para compatibilidade com UI atual
+        const redirecionamentosCompativeis = response.data.data.map(red => ({
+          ...red,
+          urls: red.destinos ? red.destinos.map(destino => destino.url) : []
+        }));
+        
+        setRedirecionamentos(redirecionamentosCompativeis);
         if (!hasLoadedRef.current) {
           onMessage('success', 'Redirecionamentos carregados com sucesso!');
           hasLoadedRef.current = true;
@@ -76,15 +82,27 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
   };
 
   const handleRedirecionamentoAdded = (newRedirecionamento) => {
-    setRedirecionamentos(prev => [newRedirecionamento, ...prev]);
+    // Converter destinos para URLs para compatibilidade com UI atual
+    const redirecionamentoCompativel = {
+      ...newRedirecionamento,
+      urls: newRedirecionamento.destinos ? newRedirecionamento.destinos.map(destino => destino.url) : []
+    };
+    
+    setRedirecionamentos(prev => [redirecionamentoCompativel, ...prev]);
     onMessage('success', 'Redirecionamento criado com sucesso!');
   };
 
   const handleRedirecionamentoUpdated = (updatedRedirecionamento) => {
+    // Converter destinos para URLs para compatibilidade com UI atual
+    const redirecionamentoCompativel = {
+      ...updatedRedirecionamento,
+      urls: updatedRedirecionamento.destinos ? updatedRedirecionamento.destinos.map(destino => destino.url) : []
+    };
+    
     setRedirecionamentos(prev => 
       prev.map(red => 
         red.id === updatedRedirecionamento.id 
-          ? updatedRedirecionamento 
+          ? redirecionamentoCompativel 
           : red
       )
     );

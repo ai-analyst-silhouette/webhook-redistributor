@@ -152,9 +152,21 @@ const RedirecionamentoForm = ({
     try {
       const token = localStorage.getItem('authToken') ;
       
+      // Converter URLs para formato de destinos
+      const destinos = formData.urls
+        .filter(url => url.trim())
+        .map((url, index) => ({
+          nome: `Destino ${index + 1}`,
+          url: url.trim(),
+          ativo: true,
+          ordem: index,
+          timeout: 5000,
+          max_tentativas: 3
+        }));
+
       const payload = {
         ...formData,
-        urls: formData.urls.filter(url => url.trim())
+        destinos
       };
 
       let response;
