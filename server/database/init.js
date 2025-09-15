@@ -111,13 +111,14 @@ const initDatabase = () => {
                         console.error('Erro ao verificar tabela usuarios:', err);
                         reject(err);
                       } else if (!row) {
-                        console.error('Tabela usuarios não foi criada!');
+                        console.error('ERRO CRÍTICO: Tabela usuarios não foi criada!');
                         reject(new Error('Tabela usuarios não foi criada'));
                       } else {
-                        console.log('Tabela usuarios verificada com sucesso');
+                        console.log('✅ Tabela usuarios verificada com sucesso');
                         
                         // Migrate data from old tables to new redirecionamentos structure
                         migrateDataToRedirecionamentos().then(() => {
+                          console.log('✅ Migração de dados concluída');
                           resolve();
                         }).catch((migrateErr) => {
                           console.error('Erro na migração de dados:', migrateErr);
@@ -342,8 +343,28 @@ const checkAndCreateAdminUser = (resolve, reject) => {
 const initializeDatabase = async () => {
   try {
     console.log('Iniciando inicialização do banco de dados...');
+    
+    // First, create all tables
     await initDatabase();
     console.log('Tabelas criadas com sucesso');
+    
+    // Verify that usuarios table exists before proceeding
+    await new Promise((resolve, reject) => {
+      db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'", (err, row) => {
+        if (err) {
+          console.error('Erro ao verificar tabela usuarios:', err);
+          reject(err);
+        } else if (!row) {
+          console.error('ERRO CRÍTICO: Tabela usuarios não foi criada!');
+          reject(new Error('Tabela usuarios não foi criada'));
+        } else {
+          console.log('✅ Tabela usuarios verificada com sucesso');
+          resolve();
+        }
+      });
+    });
+    
+    // Then initialize default data
     await initializeDefaultData();
     console.log('Dados padrão inicializados com sucesso');
     console.log('Inicialização do banco de dados concluída com sucesso');
