@@ -332,4 +332,119 @@ router.post('/:id/testar', requirePermission('testar_redirecionamentos'), async 
   }
 });
 
+/**
+ * PATCH /api/redirecionamentos/:id/toggle
+ * Alternar status ativo/inativo do redirecionamento
+ */
+router.patch('/:id/toggle', requirePermission('editar_redirecionamento'), auditLog('editar_redirecionamento', 'Alternando status do redirecionamento', 'redirecionamento'), async (req, res) => {
+  const { id } = req.params;
+  const { ativo } = req.body;
+  
+  // Validate input
+  if (typeof ativo !== 'boolean') {
+    return res.status(400).json({
+      error: 'Campo "ativo" deve ser um boolean',
+      code: 'INVALID_INPUT'
+    });
+  }
+  
+  try {
+    const result = await query(
+      'UPDATE redirecionamentos SET ativo = $1 WHERE id = $2 RETURNING *',
+      [ativo, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: messages.ERROR.REDIRECIONAMENTO_NOT_FOUND,
+        code: 'NOT_FOUND'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result.rows[0],
+      message: `Redirecionamento ${ativo ? 'ativado' : 'desativado'} com sucesso!`
+    });
+    
+  } catch (error) {
+    console.error('Erro ao alternar status do redirecionamento:', error);
+    res.status(500).json({
+      error: messages.ERROR.DATABASE_ERROR,
+      code: 'TOGGLE_ERROR'
+    });
+  }
+});
+
+/**
+ * PATCH /api/redirecionamentos/:id/urls/:urlIndex/toggle
+ * Alternar status ativo/inativo de uma URL específica
+ */
+router.patch('/:id/urls/:urlIndex/toggle', requirePermission('editar_redirecionamento'), auditLog('editar_redirecionamento', 'Alternando status de URL', 'redirecionamento'), async (req, res) => {
+  const { id, urlIndex } = req.params;
+  const { ativo } = req.body;
+  
+  // Validate input
+  if (typeof ativo !== 'boolean') {
+    return res.status(400).json({
+      error: 'Campo "ativo" deve ser um boolean',
+      code: 'INVALID_INPUT'
+    });
+  }
+  
+  const urlIndexInt = parseInt(urlIndex);
+  if (isNaN(urlIndexInt) || urlIndexInt < 0) {
+    return res.status(400).json({
+      error: 'Índice da URL deve ser um número válido',
+      code: 'INVALID_URL_INDEX'
+    });
+  }
+  
+  try {
+    // Get current redirecionamento
+    const getResult = await query(
+      'SELECT urls_ativas FROM redirecionamentos WHERE id = $1',
+      [id]
+    );
+    
+    if (getResult.rows.length === 0) {
+      return res.status(404).json({
+        error: messages.ERROR.REDIRECIONAMENTO_NOT_FOUND,
+        code: 'NOT_FOUND'
+      });
+    }
+    
+    // Parse current active URLs
+    let urlsAtivas = {};
+    try {
+      urlsAtivas = getResult.rows[0].urls_ativas ? JSON.parse(getResult.rows[0].urls_ativas) : {};
+    } catch (parseError) {
+      console.warn('Erro ao fazer parse do JSON urls_ativas, usando objeto vazio:', parseError);
+      urlsAtivas = {};
+    }
+    
+    // Update the specific URL status
+    urlsAtivas[urlIndexInt] = ativo;
+    
+    // Update in database
+    const updateResult = await query(
+      'UPDATE redirecionamentos SET urls_ativas = $1 WHERE id = $2 RETURNING *',
+      [JSON.stringify(urlsAtivas), id]
+    );
+    
+    res.json({
+      success: true,
+      data: updateResult.rows[0],
+      message: `URL ${ativo ? 'ativada' : 'desativada'} com sucesso!`
+    });
+    
+  } catch (error) {
+    console.error('Erro ao alternar status da URL:', error);
+    res.status(500).json({
+      error: messages.ERROR.DATABASE_ERROR,
+      code: 'URL_TOGGLE_ERROR'
+    });
+  }
+});
+
 module.exports = router;

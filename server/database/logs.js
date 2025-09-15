@@ -23,8 +23,8 @@ const getWebhookStats = async () => {
     const result = await query(`
       SELECT 
         COUNT(*) as total,
-        COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
-        COUNT(CASE WHEN status = 'error' THEN 1 END) as errors,
+        COUNT(CASE WHEN status = 200 THEN 1 END) as successful,
+        COUNT(CASE WHEN status >= 400 THEN 1 END) as errors,
         COUNT(CASE WHEN DATE(recebido_em) = CURRENT_DATE THEN 1 END) as today
       FROM logs_webhook
     `);
