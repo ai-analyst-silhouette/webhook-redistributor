@@ -1,0 +1,23 @@
+/* ========================================
+   REDIRECIONAMENTOS PAGE
+   ======================================== */
+
+.page-redirecionamentos {
+  /* Estilos específicos da página Redirecionamentos */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-redirecionamentos {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-redirecionamentos {
+    padding: 0;
+  }
+}

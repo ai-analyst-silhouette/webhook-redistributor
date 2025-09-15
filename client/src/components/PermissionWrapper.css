@@ -1,0 +1,99 @@
+/* PermissionWrapper Styles */
+
+.permission-wrapper {
+  display: contents;
+}
+
+.permission-fallback {
+  display: none;
+}
+
+.permission-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.permission-tooltip .tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+}
+
+.permission-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.permission-tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.permission-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.permission-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.permission-badge.admin {
+  background-color: #dc3545;
+  color: white;
+}
+
+.permission-badge.user {
+  background-color: #6c757d;
+  color: white;
+}
+
+.permission-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: #666;
+  flex-wrap: nowrap;
+}
+
+.permission-indicator .icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.permission-indicator .icon.admin {
+  background-color: #dc3545;
+}
+
+.permission-indicator .icon.user {
+  background-color: #6c757d;
+}

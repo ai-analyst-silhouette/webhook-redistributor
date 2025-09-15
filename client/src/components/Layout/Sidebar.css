@@ -1,0 +1,650 @@
+/* ========================================
+   SIDEBAR COMPONENT
+   ======================================== */
+
+.app-sidebar {
+  /* Herda estilos do layout.css */
+  transition: width var(--transition-normal);
+}
+
+.app-sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ========================================
+   HEADER DO SIDEBAR
+   ======================================== */
+.sidebar-header {
+  padding: 8px 12px;
+  border-bottom: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  transition: all var(--transition-normal);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+}
+
+.sidebar-toggle-btn {
+  background: var(--primary-cyan);
+  border: 1px solid var(--primary-cyan);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  opacity: 0.7;
+  box-shadow: 0 0 15px rgba(0, 188, 212, 0.4);
+}
+
+/* Seção do botão de toggle - div separada */
+.sidebar-toggle-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px 0 16px;
+  margin-bottom: 4px;
+}
+
+/* Modo colapsado - centralizar botão */
+.app-sidebar.collapsed .sidebar-toggle-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.app-sidebar.collapsed .sidebar-toggle-section .sidebar-section-title {
+  display: none;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--primary-cyan-light);
+  transform: scale(1.05);
+  opacity: 1;
+  box-shadow: 0 0 20px rgba(0, 188, 212, 0.6);
+}
+
+.toggle-arrow {
+  font-size: 20px;
+  font-weight: bold;
+  transition: transform var(--transition-normal);
+}
+
+.toggle-arrow.collapsed {
+  transform: rotate(0deg);
+}
+
+/* ========================================
+   SEÇÕES DA SIDEBAR
+   ======================================== */
+.sidebar-section {
+  margin-bottom: 16px;
+  padding-top: 20px;
+}
+
+.sidebar-section:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.sidebar-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.sidebar-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  padding: 0 16px 8px;
+  margin-bottom: 8px;
+}
+
+/* Título na seção do toggle */
+.sidebar-toggle-section .sidebar-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+
+/* ========================================
+   NAVEGAÇÃO
+   ======================================== */
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav-item {
+  margin: 0;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border-radius: 0 25px 25px 0;
+  margin-right: 16px;
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Modo colapsado */
+.app-sidebar.collapsed .sidebar-nav-link {
+  padding: 12px;
+  justify-content: center;
+  margin-right: 0;
+  border-radius: 6px;
+  margin-top: 2px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Botão de toggle quando colapsado */
+.app-sidebar.collapsed .sidebar-toggle-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  margin: 0;
+  padding: 12px;
+}
+
+.app-sidebar.collapsed .sidebar-section:first-of-type {
+  padding-top: 0;
+}
+
+.app-sidebar.collapsed .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.app-sidebar.collapsed .sidebar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.app-sidebar.collapsed .sidebar-nav-link .sidebar-nav-icon {
+  margin: 0;
+}
+
+.sidebar-nav-link:hover {
+  background-color: var(--sidebar-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-link.active {
+  background: var(--primary-cyan);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+}
+
+
+.sidebar-nav-link.active .sidebar-nav-icon {
+  transform: scale(1.1);
+}
+
+.sidebar-nav-link.active .sidebar-nav-label {
+  font-weight: 600;
+}
+
+.sidebar-nav-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+/* Filtro branco apenas no modo escuro */
+[data-theme="dark"] .sidebar-icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar-nav-link.active .sidebar-icon-img {
+  opacity: 1;
+}
+
+/* Filtro branco no estado ativo apenas no modo escuro */
+[data-theme="dark"] .sidebar-nav-link.active .sidebar-icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar-nav-link:hover .sidebar-nav-icon {
+  transform: scale(1.05);
+}
+
+.sidebar-nav-link:hover .sidebar-icon-img {
+  opacity: 1;
+}
+
+
+
+/* Filtro branco no hover apenas no modo escuro */
+[data-theme="dark"] .sidebar-nav-link:hover .sidebar-icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.sidebar-nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========================================
+   BADGES
+   ======================================== */
+.admin-badge {
+  background-color: var(--primary-magenta);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   FOOTER DA SIDEBAR
+   ======================================== */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-secondary);
+}
+
+.system-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #00ff00;
+  animation: slowBlink 3s infinite;
+  box-shadow: 0 0 25px rgba(0, 255, 0, 1), 0 0 50px rgba(0, 255, 0, 0.9), 0 0 80px rgba(0, 255, 0, 0.6);
+}
+
+/* Verde mais escuro no modo claro */
+[data-theme="light"] .status-indicator {
+  background-color: #00aa00;
+  box-shadow: 0 0 25px rgba(0, 170, 0, 1), 0 0 50px rgba(0, 170, 0, 0.9), 0 0 80px rgba(0, 170, 0, 0.6);
+}
+
+.status-indicator.offline {
+  background-color: var(--error);
+}
+
+@keyframes slowBlink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.system-version {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* ========================================
+   OVERLAY
+   ======================================== */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay);
+  z-index: var(--z-sidebar);
+  display: none;
+}
+
+.sidebar-overlay.open {
+  display: block;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+  
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-overlay.open {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .sidebar-nav-link {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+  
+  .sidebar-nav-icon {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-sidebar {
+    max-width: 100%;
+  }
+  
+  .sidebar-section-title {
+    padding: 0 16px 8px;
+  }
+  
+  .sidebar-nav-link {
+    padding: 16px;
+    margin-right: 0;
+  }
+  
+  .sidebar-footer {
+    padding: 16px;
+  }
+}
+
+/* ========================================
+   ANIMAÇÕES
+   ======================================== */
+.sidebar-nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-nav-link::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.sidebar-nav-link:hover::after {
+  left: 100%;
+}
+
+/* ========================================
+   ESTADOS DE FOCO E ACESSIBILIDADE
+   ======================================== */
+.sidebar-nav-link:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.sidebar-nav-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.sidebar-nav-link:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+.sidebar-nav-link.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.sidebar-nav-link.loading .sidebar-nav-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   TOOLTIP
+   ======================================== */
+.sidebar-nav-link[title]:hover::before {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: var(--z-tooltip);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-primary);
+  margin-left: 8px;
+  opacity: 0;
+  animation: tooltipFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* ========================================
+   SCROLLBAR
+   ======================================== */
+.app-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--border-primary);
+  border-radius: 3px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-tertiary);
+}
+
+/* ========================================
+   BOTÃO PRINCIPAL - NOVO
+   ======================================== */
+.sidebar-action-btn {
+  background: linear-gradient(135deg, var(--primary-blue), #2563eb) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transition: all var(--transition-normal);
+  font-weight: 600;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+  min-height: 48px;
+}
+
+.sidebar-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.sidebar-action-btn:hover::before {
+  left: 100%;
+}
+
+.sidebar-action-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+/* Hover específico para sidebar colapsado */
+.app-sidebar.collapsed .sidebar-action-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.sidebar-action-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Active específico para sidebar colapsado */
+.app-sidebar.collapsed .sidebar-action-btn:active {
+  transform: translateY(0) scale(1.02);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.sidebar-action-btn .sidebar-nav-icon {
+  transform: scale(1.2);
+  width: 32px;
+  height: 32px;
+}
+
+.sidebar-action-btn .sidebar-icon-img {
+  filter: brightness(0) invert(1);
+  width: 28px;
+  height: 28px;
+}
+
+.sidebar-action-btn .sidebar-icon-svg {
+  width: 28px;
+  height: 28px;
+  stroke: white;
+  filter: none;
+}
+
+.sidebar-action-btn .sidebar-nav-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Destaque especial quando colapsado */
+.app-sidebar.collapsed .sidebar-action-btn {
+  margin-bottom: 16px;
+  border-radius: 16px;
+  padding: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-sidebar.collapsed .sidebar-action-btn .sidebar-nav-icon {
+  transform: scale(1.1);
+  width: 24px;
+  height: 24px;
+}
+
+.app-sidebar.collapsed .sidebar-action-btn .sidebar-icon-svg {
+  width: 24px;
+  height: 24px;
+}

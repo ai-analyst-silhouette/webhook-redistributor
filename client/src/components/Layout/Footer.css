@@ -1,0 +1,229 @@
+/* ========================================
+   FOOTER COMPONENT
+   ======================================== */
+
+.app-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--footer-height);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-subtle);
+  z-index: var(--z-header);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.footer-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.footer-content-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-logo-image {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  opacity: 0.9;
+  transition: all var(--transition-normal);
+}
+
+.footer-logo-image:hover {
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.footer-text {
+  font-size: 14px;
+  color: var(--footer-text);
+  font-weight: 500;
+}
+
+.heart {
+  color: #e91e63;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+.footer-text strong {
+  color: var(--primary-cyan);
+  font-weight: 600;
+}
+
+/* ========================================
+   FOOTER LINKS
+   ======================================== */
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-link {
+  color: var(--footer-text);
+  text-decoration: none;
+  font-size: 12px;
+  transition: color var(--transition-fast);
+}
+
+.footer-link:hover {
+  color: var(--primary-cyan);
+}
+
+/* ========================================
+   FOOTER STATUS
+   ======================================== */
+.footer-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #00ff00;
+  animation: slowBlink 3s infinite;
+  box-shadow: 0 0 22px rgba(0, 255, 0, 1), 0 0 45px rgba(0, 255, 0, 0.9), 0 0 70px rgba(0, 255, 0, 0.6);
+}
+
+/* Verde mais escuro no modo claro */
+[data-theme="light"] .status-indicator {
+  background-color: #00aa00;
+  box-shadow: 0 0 22px rgba(0, 170, 0, 1), 0 0 45px rgba(0, 170, 0, 0.9), 0 0 70px rgba(0, 170, 0, 0.6);
+}
+
+.status-indicator.offline {
+  background-color: var(--error);
+}
+
+.status-indicator.warning {
+  background-color: var(--warning);
+}
+
+@keyframes slowBlink {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.status-text {
+  font-size: 11px;
+  color: var(--footer-text);
+  font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 0 16px;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .footer-main {
+    order: 1;
+  }
+  
+  .footer-right {
+    order: 2;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .footer-links {
+    gap: 12px;
+  }
+  
+  .footer-text {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-footer {
+    padding: 0 12px;
+  }
+  
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .footer-text {
+    font-size: 12px;
+  }
+  
+  .footer-links .footer-link {
+    font-size: 11px;
+  }
+}
+
+/* ========================================
+   ANIMAÇÕES
+   ======================================== */
+.footer-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--primary-cyan);
+  transition: width var(--transition-fast);
+}
+
+.footer-link:hover::after {
+  width: 100%;
+}

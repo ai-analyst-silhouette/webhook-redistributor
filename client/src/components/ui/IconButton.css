@@ -1,0 +1,136 @@
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.icon-button:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+}
+
+.icon-button.danger:hover {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.icon-button.danger:hover .icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.icon-button.edit:hover {
+  background: #ffc107;
+  color: #000000;
+}
+
+.icon-button.edit:hover .icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.icon-button.copy .icon-img {
+  filter: brightness(0) saturate(100%) invert(50%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.5) contrast(100%);
+}
+
+.icon-button.copy:hover {
+  background: var(--primary-blue);
+  color: #ffffff;
+}
+
+.icon-button.copy:hover .icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.icon-button.warning:hover {
+  background: var(--warning);
+  color: #000000;
+}
+
+.icon-button.success:hover {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.icon-button:disabled:hover {
+  background: transparent;
+  color: var(--text-secondary);
+  transform: none;
+}
+
+.icon-button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.icon-button .icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  transition: filter 0.2s ease;
+}
+
+[data-theme="light"] .icon-button .icon-img {
+  filter: brightness(0) invert(0);
+}
+
+/* Filtros específicos por tipo de ícone */
+.icon-button.danger .icon-img {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+
+[data-theme="light"] .icon-button.danger .icon-img {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+
+.icon-button.edit .icon-img {
+  filter: brightness(0) saturate(100%) invert(69%) sepia(60%) saturate(2583%) hue-rotate(2deg) brightness(102%) contrast(101%);
+}
+
+[data-theme="light"] .icon-button.edit .icon-img {
+  filter: brightness(0) saturate(100%) invert(69%) sepia(60%) saturate(2583%) hue-rotate(2deg) brightness(102%) contrast(101%);
+}
+
+/* Modo claro */
+[data-theme="light"] .icon-button {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .icon-button:hover {
+  color: var(--text-primary);
+}
+
+/* Ícone de fechar (X) */
+.close-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
+
+.icon-button .close-icon {
+  filter: none;
+}
+
+.icon-button:hover .close-icon {
+  filter: brightness(0) invert(1);
+}

@@ -1,0 +1,90 @@
+/* ========================================
+   APP LAYOUT COMPONENT
+   ======================================== */
+
+.app-layout {
+  /* Herda estilos do layout.css */
+}
+
+/* ========================================
+   ANIMAÇÕES E TRANSIÇÕES
+   ======================================== */
+.app-layout * {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   ESTADOS ESPECIAIS
+   ======================================== */
+.app-layout.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.app-layout.error {
+  background-color: var(--error);
+  color: white;
+}
+
+/* ========================================
+   MODAL OVERLAY
+   ======================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: var(--bg-elevated);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-primary);
+  border-radius: 50%;
+  border-top-color: var(--primary-cyan);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+@media (max-width: 1024px) {
+  .app-layout {
+    grid-template-columns: 0 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-areas: 
+      "header"
+      "main"
+      "footer";
+    grid-template-columns: 1fr;
+  }
+}

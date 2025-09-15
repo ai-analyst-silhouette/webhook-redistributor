@@ -1,0 +1,23 @@
+/* ========================================
+   SETTINGS PAGE
+   ======================================== */
+
+.page-settings {
+  /* Estilos específicos da página Settings */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-settings {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-settings {
+    padding: 0;
+  }
+}

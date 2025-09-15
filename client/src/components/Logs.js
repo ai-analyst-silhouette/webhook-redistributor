@@ -1,96 +1,203 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  RefreshCw, 
+  CheckCircle, 
+  XCircle, 
+  Eye, 
+  Link, 
+  BarChart3, 
+  Clock,
+  ChevronDown,
+  Filter,
+  Download,
+  Search
+} from 'lucide-react';
 import api from '../api';
+import config from '../config';
+import useAutoRefresh from '../hooks/useAutoRefresh';
+import logsIcon from '../assets/icons/logs.png';
 import './Logs.css';
 
-const Logs = () => {
+const Logs = ({ onMessage, isVisible = true }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedLogs, setExpandedLogs] = useState(new Set());
-  const [endpoints, setEndpoints] = useState([]);
-  const [selectedEndpoint, setSelectedEndpoint] = useState(null);
+  const [redirecionamentos, setRedirecionamentos] = useState([]);
+  const [selectedRedirecionamento, setSelectedRedirecionamento] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [newLogsCount, setNewLogsCount] = useState(0);
+  const [previousLogsLength, setPreviousLogsLength] = useState(0);
+  const hasLoadedRef = useRef(false);
+
+  // Auto-refresh dos logs a cada 3 segundos quando visível
+  const refreshLogs = useCallback(() => {
+    fetchLogs(selectedRedirecionamento, statusFilter, true); // true = isAutoRefresh
+  }, [selectedRedirecionamento, statusFilter]);
+
+  useAutoRefresh(refreshLogs, 3000, autoRefresh && isVisible, [selectedRedirecionamento, statusFilter]);
 
   useEffect(() => {
     fetchLogs();
-    fetchEndpoints();
-  }, []);
+    fetchRedirecionamentos();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchLogs = async (endpoint = null, status = 'all') => {
+  const fetchLogs = async (redirecionamento = null, status = 'all', isAutoRefresh = false) => {
     try {
-      setLoading(true);
+      console.log('🔄 fetchLogs chamado:', { redirecionamento, status, isAutoRefresh });
+      
+      // Só mostra loading se não for auto-refresh
+      if (!isAutoRefresh) {
+        setLoading(true);
+      }
       setError(null);
       
-      let url = '/api/logs?limit=50';
-      if (endpoint) {
-        url = `/api/logs/endpoint/${endpoint}?limit=50`;
+      let url = `${config.routes.logs}?limit=50`;
+      if (redirecionamento) {
+        url = `${config.routes.logs}?slug_redirecionamento=${redirecionamento}&limit=50`;
       }
       if (status !== 'all') {
         url += `&status=${status}`;
       }
       
-      const response = await api.get(url);
+      console.log('🌐 URL da requisição:', url);
+      
+      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      
+      const response = await api.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (response.data.success) {
-        setLogs(response.data.data);
+        const newLogs = response.data.data;
+        
+        console.log('📥 Logs recebidos da API:', {
+          count: newLogs.length,
+          logs: newLogs.map(log => ({
+            id: log.id,
+            status: log.status,
+            slug_redirecionamento: log.slug_redirecionamento
+          }))
+        });
+        
+        // Detectar novos logs apenas durante auto-refresh
+        if (isAutoRefresh && newLogs.length > previousLogsLength) {
+          const newCount = newLogs.length - previousLogsLength;
+          setNewLogsCount(newCount);
+          
+          // Limpar contador após 3 segundos
+          setTimeout(() => setNewLogsCount(0), 3000);
+        }
+        
+        setLogs(newLogs);
+        setPreviousLogsLength(newLogs.length);
+        setLastUpdate(new Date());
+        
+        if (!hasLoadedRef.current && onMessage) {
+          onMessage('success', 'Logs carregados com sucesso!');
+          hasLoadedRef.current = true;
+        }
       } else {
-        setError('Failed to fetch webhook logs');
+        setError('Falha ao carregar logs de webhook');
       }
     } catch (err) {
-      console.error('Error fetching logs:', err);
-      setError('Error connecting to server. Make sure the backend is running on port 3002.');
+      console.error('❌ Erro ao carregar logs:', err);
+      setError('Erro ao conectar com o servidor. Verifique se o backend está rodando na porta 3001.');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchEndpoints = async () => {
+  const fetchRedirecionamentos = async () => {
     try {
-      const response = await api.get('/api/endpoints');
+      const token = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoiYWRtaW5Ad2ViaG9vay5sb2NhbCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1Nzg3NzA2NiwiZXhwIjoxNzU3OTYzNDY2fQ.wsB9X0lOTehbClmUywzz6BXNeoIi27hoI_FANnnxTcY';
+      
+      const response = await api.get(config.routes.redirecionamentos, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       if (response.data.success) {
-        setEndpoints(response.data.data);
+        setRedirecionamentos(response.data.data);
       }
     } catch (err) {
-      console.error('Error fetching endpoints:', err);
+      console.error('Erro ao carregar redirecionamentos:', err);
     }
   };
 
-  const handleEndpointFilter = (endpointSlug) => {
-    setSelectedEndpoint(endpointSlug);
-    fetchLogs(endpointSlug, statusFilter);
+  const handleRedirecionamentoFilter = (redirecionamentoSlug) => {
+    setSelectedRedirecionamento(redirecionamentoSlug);
+    fetchLogs(redirecionamentoSlug, statusFilter);
   };
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
-    fetchLogs(selectedEndpoint, status);
+    fetchLogs(selectedRedirecionamento, status);
   };
 
   const getFilteredLogs = () => {
-    let filtered = logs;
-    
-    if (selectedEndpoint) {
-      filtered = filtered.filter(log => log.endpoint_slug === selectedEndpoint);
+    if (!logs || logs.length === 0) {
+      console.log('⚠️ Nenhum log disponível para filtrar');
+      return [];
     }
     
-    if (statusFilter !== 'all') {
+    let filtered = [...logs]; // Cria uma cópia para não modificar o array original
+    
+    console.log('🔍 Filtros aplicados:', {
+      totalLogs: logs.length,
+      selectedRedirecionamento,
+      statusFilter,
+      logs: logs.map(log => ({
+        id: log.id,
+        status: log.status,
+        slug_redirecionamento: log.slug_redirecionamento
+      }))
+    });
+    
+    // Filtro por redirecionamento
+    if (selectedRedirecionamento && selectedRedirecionamento !== '') {
+      const beforeCount = filtered.length;
       filtered = filtered.filter(log => {
-        if (statusFilter === 'success') return log.status === 200;
-        if (statusFilter === 'error') return log.status >= 400;
-        return true;
+        const matches = log.slug_redirecionamento === selectedRedirecionamento;
+        console.log(`📍 Log ${log.id}: slug=${log.slug_redirecionamento}, selected=${selectedRedirecionamento}, matches=${matches}`);
+        return matches;
       });
+      console.log(`📍 Filtro por redirecionamento: ${beforeCount} → ${filtered.length}`);
     }
     
+    // Filtro por status
+    if (statusFilter && statusFilter !== 'all') {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(log => {
+        let matches = false;
+        if (statusFilter === 'success') {
+          matches = log.status === 200;
+        } else if (statusFilter === 'error') {
+          matches = log.status >= 400;
+        }
+        console.log(`📊 Log ${log.id}: status=${log.status}, filter=${statusFilter}, matches=${matches}`);
+        return matches;
+      });
+      console.log(`📊 Filtro por status: ${beforeCount} → ${filtered.length}`);
+    }
+    
+    console.log('✅ Resultado final:', filtered.length, 'logs');
     return filtered;
   };
 
-  const getEndpointName = (endpointSlug) => {
-    const endpoint = endpoints.find(ep => ep.slug === endpointSlug);
-    return endpoint ? endpoint.name : endpointSlug || 'Default';
+  const getRedirecionamentoName = (redirecionamentoSlug) => {
+    const redirecionamento = redirecionamentos.find(r => r.slug === redirecionamentoSlug);
+    return redirecionamento ? redirecionamento.nome : redirecionamentoSlug || 'Padrão';
   };
 
-  const getEndpointColor = (endpointSlug) => {
+  const getRedirecionamentoColor = (redirecionamentoSlug) => {
     const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
-    const index = endpoints.findIndex(ep => ep.slug === endpointSlug);
+    const index = redirecionamentos.findIndex(r => r.slug === redirecionamentoSlug);
     return colors[index % colors.length] || '#6c757d';
   };
 
@@ -105,7 +212,15 @@ const Logs = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
   };
 
   const formatPayload = (payloadString) => {
@@ -118,9 +233,11 @@ const Logs = () => {
   };
 
   const getStatusBadge = (status) => {
+    const statusText = status === 200 ? 'Sucesso' : 'Erro';
     return (
-      <span className={`status-badge ${status}`}>
-        {status === 'success' ? '✅' : '❌'} {status.toUpperCase()}
+      <span className={`status-badge ${status === 200 ? 'success' : 'error'}`}>
+        {status === 200 ? <CheckCircle size={16} /> : <XCircle size={16} />} 
+        <span className="status-text">{statusText}</span>
       </span>
     );
   };
@@ -129,14 +246,22 @@ const Logs = () => {
     return (
       <div className="logs-container">
         <div className="logs-header">
-          <h2>📋 Webhook Logs</h2>
+          <h2>
+            <img 
+              src={logsIcon} 
+              alt="Logs" 
+              className="header-icon"
+            />
+            Histórico de Webhooks
+          </h2>
           <button onClick={fetchLogs} className="btn btn-primary" disabled>
-            🔄 Loading...
+            <RefreshCw size={16} className="spinning" />
+            Carregando...
           </button>
         </div>
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading webhook logs...</p>
+          <p>Carregando logs de webhook...</p>
         </div>
       </div>
     );
@@ -146,13 +271,21 @@ const Logs = () => {
     return (
       <div className="logs-container">
         <div className="logs-header">
-          <h2>📋 Webhook Logs</h2>
+          <h2>
+            <img 
+              src={logsIcon} 
+              alt="Logs" 
+              className="header-icon"
+            />
+            Histórico de Webhooks
+          </h2>
           <button onClick={fetchLogs} className="btn btn-primary">
-            🔄 Retry
+            <RefreshCw size={16} />
+            Tentar Novamente
           </button>
         </div>
         <div className="error-state">
-          <p>❌ {error}</p>
+          <p><XCircle size={16} /> {error}</p>
         </div>
       </div>
     );
@@ -161,11 +294,46 @@ const Logs = () => {
   return (
     <div className="logs-container">
       <div className="logs-header">
-        <h2>📋 Webhook Logs</h2>
+        <h2>
+          <img 
+            src={logsIcon} 
+            alt="Logs" 
+            className="header-icon"
+          />
+          Histórico de Webhooks
+        </h2>
         <div className="header-actions">
-          <span className="logs-count">{getFilteredLogs().length} recent webhooks</span>
-          <button onClick={() => fetchLogs(selectedEndpoint, statusFilter)} className="btn btn-primary">
-            🔄 Refresh
+          <div className="auto-refresh-controls">
+            <label className="auto-refresh-toggle">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+              />
+              <span className="toggle-text">
+                <RefreshCw size={16} />
+                Auto-atualizar (3s)
+              </span>
+            </label>
+          </div>
+          <span className="logs-count">
+            <BarChart3 size={16} />
+            {getFilteredLogs().length} webhooks recentes
+            {newLogsCount > 0 && (
+              <span className="new-logs-badge">
+                +{newLogsCount} novo{newLogsCount > 1 ? 's' : ''}
+              </span>
+            )}
+            {lastUpdate && autoRefresh && (
+              <span className="last-update">
+                <Clock size={14} />
+                Atualizado: {lastUpdate.toLocaleTimeString('pt-BR')}
+              </span>
+            )}
+          </span>
+          <button onClick={() => fetchLogs(selectedRedirecionamento, statusFilter)} className="btn btn-primary">
+            <RefreshCw size={16} />
+            Atualizar
           </button>
         </div>
       </div>
@@ -173,47 +341,53 @@ const Logs = () => {
       {/* Filters */}
       <div className="logs-filters">
         <div className="filter-group">
-          <label className="filter-label">Endpoint:</label>
-          <div className="filter-buttons">
-            <button
-              className={`filter-btn ${!selectedEndpoint ? 'active' : ''}`}
-              onClick={() => handleEndpointFilter(null)}
+          <label className="filter-label">
+            <Filter size={16} />
+            Filtrar por redirecionamento:
+          </label>
+          <div className="filter-select-container">
+            <select
+              className="filter-select"
+              value={selectedRedirecionamento || ''}
+              onChange={(e) => handleRedirecionamentoFilter(e.target.value || null)}
             >
-              👁️ Todos
-            </button>
-            {endpoints.map(endpoint => (
-              <button
-                key={endpoint.id}
-                className={`filter-btn ${selectedEndpoint === endpoint.slug ? 'active' : ''}`}
-                onClick={() => handleEndpointFilter(endpoint.slug)}
-                style={{ borderLeftColor: getEndpointColor(endpoint.slug) }}
-              >
-                🔗 {endpoint.name}
-              </button>
-            ))}
+              <option value="">Todos os redirecionamentos</option>
+              {redirecionamentos.map(redirecionamento => (
+                <option key={redirecionamento.id} value={redirecionamento.slug}>
+                  {redirecionamento.nome}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="select-arrow" />
           </div>
         </div>
 
         <div className="filter-group">
-          <label className="filter-label">Status:</label>
+          <label className="filter-label">
+            <BarChart3 size={16} />
+            Filtrar por status:
+          </label>
           <div className="filter-buttons">
             <button
               className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('all')}
             >
-              📊 Todos
+              <BarChart3 size={16} />
+              Todos
             </button>
             <button
               className={`filter-btn ${statusFilter === 'success' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('success')}
             >
-              ✅ Sucesso
+              <CheckCircle size={16} />
+              Sucesso
             </button>
             <button
               className={`filter-btn ${statusFilter === 'error' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('error')}
             >
-              ❌ Erro
+              <XCircle size={16} />
+              Erro
             </button>
           </div>
         </div>
@@ -221,9 +395,14 @@ const Logs = () => {
 
       {getFilteredLogs().length === 0 ? (
         <div className="empty-state">
+          <img 
+            src={logsIcon} 
+            alt="Logs" 
+            className="empty-icon"
+          />
           <p>
-            {selectedEndpoint 
-              ? `Nenhum log encontrado para o endpoint "${getEndpointName(selectedEndpoint)}"`
+            {selectedRedirecionamento 
+              ? `Nenhum log encontrado para o redirecionamento "${getRedirecionamentoName(selectedRedirecionamento)}"`
               : 'Nenhum log de webhook encontrado.'
             }
           </p>
@@ -231,29 +410,33 @@ const Logs = () => {
         </div>
       ) : (
         <div className="logs-list">
-          {getFilteredLogs().map((log) => (
-            <div key={log.id} className="log-item">
+          {getFilteredLogs().map((log, index) => (
+            <div 
+              key={log.id} 
+              className={`log-item ${index < newLogsCount ? 'new-log' : ''}`}
+            >
               <div className="log-header" onClick={() => toggleLogExpansion(log.id)}>
                 <div className="log-info">
                   <div className="log-id">#{log.id}</div>
-                  <div className="log-time">{formatDate(log.received_at)}</div>
+                  <div className="log-time">{formatDate(log.recebido_em)}</div>
                   <div 
                     className="log-endpoint"
                     style={{ 
-                      backgroundColor: getEndpointColor(log.endpoint_slug),
+                      backgroundColor: getRedirecionamentoColor(log.slug_redirecionamento),
                       color: 'white'
                     }}
                   >
-                    🔗 {getEndpointName(log.endpoint_slug)}
+                    <Link size={14} />
+                    {getRedirecionamentoName(log.slug_redirecionamento)}
                   </div>
                   <div className="log-destinations">
-                    {log.destinations_sent} destination{log.destinations_sent !== 1 ? 's' : ''}
+                    {log.destinos_enviados} destino{log.destinos_enviados !== 1 ? 's' : ''} atingido{log.destinos_enviados !== 1 ? 's' : ''}
                   </div>
                 </div>
                 <div className="log-actions">
                   {getStatusBadge(log.status)}
                   <span className="expand-icon">
-                    {expandedLogs.has(log.id) ? '▼' : '▶'}
+                    <ChevronDown size={16} className={expandedLogs.has(log.id) ? 'expanded' : ''} />
                   </span>
                 </div>
               </div>
@@ -261,7 +444,7 @@ const Logs = () => {
               {expandedLogs.has(log.id) && (
                 <div className="log-details">
                   <div className="log-payload">
-                    <h4>Payload:</h4>
+                    <h4>Dados do Webhook:</h4>
                     <pre className="payload-content">
                       {formatPayload(log.payload)}
                     </pre>
@@ -269,7 +452,7 @@ const Logs = () => {
                   
                   {log.error_message && (
                     <div className="log-error">
-                      <h4>Error:</h4>
+                      <h4>Erro:</h4>
                       <p>{log.error_message}</p>
                     </div>
                   )}
@@ -279,10 +462,10 @@ const Logs = () => {
                       <strong>Status:</strong> {log.status}
                     </div>
                     <div className="meta-item">
-                      <strong>Destinations Sent:</strong> {log.destinations_sent}
+                      <strong>Destinos Atingidos:</strong> {log.destinos_enviados}
                     </div>
                     <div className="meta-item">
-                      <strong>Received At:</strong> {formatDate(log.received_at)}
+                      <strong>Data/Hora:</strong> {formatDate(log.recebido_em)}
                     </div>
                   </div>
                 </div>

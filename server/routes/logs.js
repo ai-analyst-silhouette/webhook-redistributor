@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const logs = require('../database/logs');
+const { authenticateToken } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/permissions');
 
 // GET /api/logs - Get recent webhook logs
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requirePermission('visualizar_logs'), async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
     const webhookLogs = await logs.getRecentWebhookLogs(limit);
@@ -25,7 +27,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/logs/stats - Get webhook statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', authenticateToken, requirePermission('visualizar_estatisticas'), async (req, res) => {
   try {
     const stats = await logs.getWebhookStats();
     

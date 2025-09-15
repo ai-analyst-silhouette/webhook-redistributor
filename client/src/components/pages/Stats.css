@@ -1,0 +1,23 @@
+/* ========================================
+   STATS PAGE
+   ======================================== */
+
+.page-stats {
+  /* Estilos específicos da página Stats */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-stats {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-stats {
+    padding: 0;
+  }
+}

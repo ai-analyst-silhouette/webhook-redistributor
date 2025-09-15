@@ -17,11 +17,14 @@ require('dotenv').config();
 const { initializeDatabase } = require('./database/init');
 
 // Import API routes
+const authRoutes = require('./routes/auth');              // Authentication routes
 const webhookRoutes = require('./routes/webhook');        // Webhook reception and redistribution
-const destinationRoutes = require('./routes/destinations'); // Destination CRUD operations
-const endpointRoutes = require('./routes/endpoints');      // Endpoint CRUD operations
+const redirecionamentosRoutes = require('./routes/redirecionamentos'); // Redirecionamentos CRUD operations
 const logsRoutes = require('./routes/logs');              // Logs and statistics
 const exportRoutes = require('./routes/export');          // Export/import configuration
+
+// Import authentication middleware
+const { authenticateToken, apiRateLimiter } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Default to port 3001, but can be overridden by environment
@@ -31,10 +34,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Apply rate limiting to all API routes
+app.use('/api', apiRateLimiter);
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Webhook Redistribution Server is running',
+    message: 'Servidor de Redistribuição de Webhook está rodando',
     status: 'OK',
     port: PORT
   });
@@ -43,17 +49,17 @@ app.get('/', (req, res) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'healthy',
+    status: 'saudável',
     timestamp: new Date().toISOString()
   });
 });
 
 // Register routes
-app.use('/api/webhook', webhookRoutes);
-app.use('/api/destinations', destinationRoutes);
-app.use('/api/endpoints', endpointRoutes);
-app.use('/api/logs', logsRoutes);
-app.use('/api/export', exportRoutes);
+app.use('/api/autenticacao', authRoutes);                    // Authentication routes (no auth required)
+app.use('/api/webhook', webhookRoutes);                      // Webhook reception (no auth required for webhook reception)
+app.use('/api/redirecionamentos', authenticateToken, redirecionamentosRoutes); // Redirecionamentos CRUD operations (auth required)
+app.use('/api/logs-webhook', authenticateToken, logsRoutes);          // Logs and statistics (auth required)
+app.use('/api/exportar', authenticateToken, exportRoutes);            // Export/import configuration (auth required)
 
 // Initialize database and start server
 const startServer = async () => {
@@ -63,17 +69,17 @@ const startServer = async () => {
     
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Servidor rodando na porta ${PORT}`);
       
       // Show appropriate health check URL based on environment
       const healthUrl = process.env.NODE_ENV === 'production' 
         ? 'https://redistribuidor-back.silhouetteexperts.com.br/health'
         : `http://localhost:${PORT}/health`;
       
-      console.log(`Health check available at ${healthUrl}`);
+      console.log(`Verificação de saúde disponível em ${healthUrl}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('Falha ao iniciar servidor:', error);
     process.exit(1);
   }
 };

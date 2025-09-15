@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Settings as SettingsIcon, Copy, ToggleLeft, ToggleRight, Save, RefreshCw, Globe, Shield, Database, Bell } from 'lucide-react';
 import axios from 'axios';
+import Skeleton from './ui/Skeleton';
+import Button from './ui/Button';
+import ToggleSwitch from './ui/ToggleSwitch';
+import IconButton from './ui/IconButton';
+import { CopyIcon, TestTubeIcon } from './ui/icons';
 import './Settings.css';
 
 const Settings = ({ onSettingsChange }) => {
   const [settings, setSettings] = useState({
-    webhookUrl: '',
+    webhookUrl: 'http://localhost:3002/api/webhook', // Default fallback
     redistributionEnabled: true
   });
   const [loading, setLoading] = useState(false);
@@ -15,7 +21,15 @@ const Settings = ({ onSettingsChange }) => {
     const webhookUrl = process.env.NODE_ENV === 'production' 
       ? 'https://redistribuidor-back.silhouetteexperts.com.br/api/webhook'
       : 'http://localhost:3002/api/webhook';
-    setSettings(prev => ({ ...prev, webhookUrl }));
+    
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Webhook URL set:', webhookUrl);
+    
+    setSettings(prev => {
+      const newSettings = { ...prev, webhookUrl };
+      console.log('Settings updated:', newSettings);
+      return newSettings;
+    });
   }, []);
 
   const showMessage = (type, text) => {
@@ -52,123 +66,197 @@ const Settings = ({ onSettingsChange }) => {
   };
 
   const testWebhookEndpoint = async () => {
+    if (!settings.webhookUrl) {
+      showMessage('error', 'URL do webhook não está definida');
+      return;
+    }
+
     setLoading(true);
     try {
+      console.log('Testing webhook URL:', settings.webhookUrl);
+      
       const response = await axios.post(settings.webhookUrl, {
         test: true,
         message: 'Test webhook from settings',
         timestamp: new Date().toISOString(),
         source: 'settings-test'
+      }, {
+        timeout: 10000, // 10 seconds timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
-      if (response.data.success) {
+      console.log('Webhook response:', response);
+      
+      if (response.status === 200) {
         showMessage('success', 'Webhook endpoint funcionando corretamente!');
       } else {
-        showMessage('error', 'Webhook endpoint retornou erro');
+        showMessage('error', `Webhook retornou status ${response.status}`);
       }
     } catch (error) {
       console.error('Error testing webhook:', error);
-      showMessage('error', 'Erro ao testar webhook endpoint');
+      
+      if (error.code === 'ECONNREFUSED') {
+        showMessage('error', 'Servidor não está rodando ou não acessível');
+      } else if (error.response) {
+        showMessage('error', `Erro do servidor: ${error.response.status} - ${error.response.statusText}`);
+      } else if (error.request) {
+        showMessage('error', 'Não foi possível conectar ao servidor');
+      } else {
+        showMessage('error', 'Erro ao testar webhook endpoint');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading && !settings.webhookUrl) {
+    return (
+      <div className="settings-container">
+        <div className="settings-header">
+          <h2>
+            <SettingsIcon size={24} />
+            Configurações
+          </h2>
+        </div>
+        <div className="settings-skeleton">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="skeleton-card">
+              <Skeleton width="200px" height="24px" />
+              <Skeleton width="100%" height="60px" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="settings-container">
-      <div className="settings-header">
-        <h2>⚙️ Configurações</h2>
+      <div className="section-header">
+        <div className="page-title">
+          <SettingsIcon className="icon-img" />
+          <h2>Configurações</h2>
+        </div>
       </div>
 
       {message.text && (
-        <div className={`alert alert-${message.type}`}>
+        <div className={`alert alert-${message.type} fade-in`}>
           {message.text}
         </div>
       )}
 
       <div className="settings-content">
-        <div className="setting-group">
-          <h3>🔗 Webhook Endpoint</h3>
-          <div className="setting-item">
-            <label className="form-label">URL do Webhook</label>
-            <div className="input-group">
-              <input
-                type="text"
-                className="form-control"
-                value={settings.webhookUrl}
-                readOnly
-                placeholder="URL do webhook endpoint"
-              />
-              <button
-                onClick={copyWebhookUrl}
-                className="btn btn-secondary"
-                title="Copiar URL"
-              >
-                📋 Copiar
-              </button>
-              <button
-                onClick={testWebhookEndpoint}
-                className="btn btn-primary"
-                disabled={loading}
-                title="Testar endpoint"
-              >
-                {loading ? <span className="spinner"></span> : '🧪 Testar'}
-              </button>
+        {/* Webhook Endpoint Section */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon">
+              <Globe size={24} />
             </div>
-            <small className="text-muted">
-              Use esta URL para enviar webhooks para o sistema de redistribuição
-            </small>
+            <div className="section-title">
+              <h3>Webhook Endpoint</h3>
+              <p>URL principal para recebimento de webhooks</p>
+            </div>
           </div>
-        </div>
-
-        <div className="setting-group">
-          <h3>🔄 Redistribuição</h3>
-          <div className="setting-item">
-            <div className="toggle-setting">
-              <div className="toggle-info">
-                <label className="toggle-label">Redistribuição Automática</label>
-                <p className="toggle-description">
-                  {settings.redistributionEnabled 
-                    ? 'Webhooks serão automaticamente redistribuídos para todos os destinos ativos'
-                    : 'Webhooks serão recebidos mas não redistribuídos'
-                  }
-                </p>
+          <div className="section-content">
+            <div className="setting-item">
+              <label className="form-label">URL do Webhook</label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={settings.webhookUrl}
+                  readOnly
+                  placeholder="URL do webhook endpoint"
+                />
+                <IconButton
+                  onClick={copyWebhookUrl}
+                  title="Copiar URL"
+                  type="copy"
+                >
+                  <CopyIcon />
+                </IconButton>
+                <IconButton
+                  onClick={testWebhookEndpoint}
+                  disabled={loading}
+                  title="Testar endpoint"
+                  type="test"
+                >
+                  <TestTubeIcon size={16} />
+                </IconButton>
               </div>
-              <button
-                onClick={handleRedistributionToggle}
-                className={`toggle-button ${settings.redistributionEnabled ? 'active' : ''}`}
-                disabled={loading}
-              >
-                <span className="toggle-slider">
-                  {loading ? <span className="spinner"></span> : (
-                    settings.redistributionEnabled ? 'ON' : 'OFF'
-                  )}
-                </span>
-              </button>
+              <small className="text-muted">
+                Use esta URL para enviar webhooks para o sistema de redistribuição
+              </small>
             </div>
           </div>
         </div>
 
-        <div className="setting-group">
-          <h3>📊 Informações do Sistema</h3>
-          <div className="info-grid">
-            <div className="info-item">
-              <strong>Status:</strong>
-              <span className={`status-indicator ${settings.redistributionEnabled ? 'active' : 'inactive'}`}>
-                {settings.redistributionEnabled ? 'Ativo' : 'Inativo'}
-              </span>
+        {/* Redistribuição Section */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon">
+              <RefreshCw size={24} />
             </div>
-            <div className="info-item">
-              <strong>Porta Backend:</strong>
-              <span>3002</span>
+            <div className="section-title">
+              <h3>Redistribuição</h3>
+              <p>Controle da redistribuição automática</p>
             </div>
-            <div className="info-item">
-              <strong>Porta Frontend:</strong>
-              <span>3000</span>
+          </div>
+          <div className="section-content">
+            <div className="setting-item">
+              <div className="toggle-setting">
+                <div className="toggle-info">
+                  <label className="toggle-label">Redistribuição Automática</label>
+                  <p className="toggle-description">
+                    {settings.redistributionEnabled
+                      ? 'Webhooks serão automaticamente redistribuídos para todos os destinos ativos'
+                      : 'Webhooks serão recebidos mas não redistribuídos'
+                    }
+                  </p>
+                </div>
+                <ToggleSwitch
+                  id="redistribution-toggle"
+                  checked={settings.redistributionEnabled}
+                  onChange={handleRedistributionToggle}
+                  disabled={loading}
+                  ariaLabel="Ativar/desativar redistribuição automática"
+                />
+              </div>
             </div>
-            <div className="info-item">
-              <strong>Banco de Dados:</strong>
-              <span>SQLite</span>
+          </div>
+        </div>
+
+        {/* Sistema Section */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon">
+              <Database size={24} />
+            </div>
+            <div className="section-title">
+              <h3>Informações do Sistema</h3>
+              <p>Status e configurações do servidor</p>
+            </div>
+          </div>
+          <div className="section-content">
+            <div className="info-grid">
+              <div className="info-item">
+                <strong>Status:</strong>
+                <span>Ativo 🟢</span>
+              </div>
+              <div className="info-item">
+                <strong>Porta Backend:</strong>
+                <span>3002</span>
+              </div>
+              <div className="info-item">
+                <strong>Porta Frontend:</strong>
+                <span>3000</span>
+              </div>
+              <div className="info-item">
+                <strong>Banco de Dados:</strong>
+                <span>SQLite</span>
+              </div>
             </div>
           </div>
         </div>

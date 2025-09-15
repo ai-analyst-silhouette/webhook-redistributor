@@ -1,0 +1,157 @@
+/* ========================================
+   HEADER TEST PAGE
+   ======================================== */
+
+.header-test-page {
+  padding: 32px 0;
+}
+
+.test-section {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.test-section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.test-section p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+/* ========================================
+   FEATURE LIST
+   ======================================== */
+.feature-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background-color: var(--bg-elevated);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-fast);
+}
+
+.feature-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-cyan);
+}
+
+.feature-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+  border-radius: 12px;
+  color: white;
+}
+
+.feature-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.feature-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ========================================
+   TEST ACTIONS
+   ======================================== */
+.test-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.test-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 140px;
+}
+
+.test-button.primary {
+  background: linear-gradient(135deg, var(--primary-cyan), var(--primary-magenta));
+  color: white;
+}
+
+.test-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.test-button.secondary {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 2px solid var(--border-primary);
+}
+
+.test-button.secondary:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--primary-cyan);
+  color: var(--primary-cyan);
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .test-section {
+    padding: 0 16px;
+  }
+  
+  .test-section h2 {
+    font-size: 24px;
+  }
+  
+  .feature-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .feature-item {
+    padding: 16px;
+  }
+  
+  .test-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .test-button {
+    width: 100%;
+    max-width: 300px;
+  }
+}

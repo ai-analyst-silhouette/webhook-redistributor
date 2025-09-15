@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const messages = require('../config/messages');
 
 // Database file path
 const DB_PATH = path.join(__dirname, 'webhook_redistributor.db');
@@ -7,75 +8,109 @@ const DB_PATH = path.join(__dirname, 'webhook_redistributor.db');
 // Create database connection
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
-    console.error('Error opening database:', err.message);
+    console.error('Erro ao abrir banco de dados:', err.message);
   } else {
-    console.log('Connected to SQLite database:', DB_PATH);
+    console.log('Conectado ao banco de dados SQLite:', DB_PATH);
   }
 });
 
 // Initialize database tables
 const initDatabase = () => {
   return new Promise((resolve, reject) => {
-    // Create webhook_endpoints table first
-    const createEndpointsTable = `
-      CREATE TABLE IF NOT EXISTS webhook_endpoints (
+    // Create redirecionamentos table (new simplified structure)
+    const createRedirecionamentosTable = `
+      CREATE TABLE IF NOT EXISTS redirecionamentos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        nome TEXT NOT NULL,
         slug TEXT UNIQUE NOT NULL,
-        description TEXT,
-        active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        descricao TEXT,
+        urls TEXT NOT NULL,
+        ativo BOOLEAN DEFAULT 1,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
-    db.run(createEndpointsTable, (err) => {
+    db.run(createRedirecionamentosTable, (err) => {
       if (err) {
-        console.error('Error creating webhook_endpoints table:', err.message);
+        console.error('Erro ao criar tabela redirecionamentos:', err.message);
         reject(err);
       } else {
-        console.log('Webhook endpoints table created or already exists');
+        console.log('Tabela redirecionamentos criada ou já existe');
         
-        // Create destinations table with webhook_endpoint_id reference
-        const createDestinationsTable = `
-          CREATE TABLE IF NOT EXISTS destinations (
+        // Create logs_webhook table (new Portuguese version)
+        const createLogsTable = `
+          CREATE TABLE IF NOT EXISTS logs_webhook (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            url TEXT NOT NULL,
-            webhook_endpoint_id INTEGER,
-            active BOOLEAN DEFAULT 1,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (webhook_endpoint_id) REFERENCES webhook_endpoints (id)
+            payload TEXT NOT NULL,
+            recebido_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status INTEGER NOT NULL,
+            destinos_enviados INTEGER DEFAULT 0,
+            mensagem_erro TEXT,
+            slug_redirecionamento TEXT,
+            tempo_resposta INTEGER DEFAULT 0
           )
         `;
-
-        db.run(createDestinationsTable, (err) => {
+        
+        db.run(createLogsTable, (err) => {
           if (err) {
-            console.error('Error creating destinations table:', err.message);
+            console.error('Erro ao criar tabela logs_webhook:', err.message);
             reject(err);
           } else {
-            console.log('Destinations table created or already exists');
+            console.log('Tabela logs_webhook criada ou já existe');
             
-            // Create webhook_logs table
-            const createLogsTable = `
-              CREATE TABLE IF NOT EXISTS webhook_logs (
+            // Create usuarios table (new Portuguese version)
+            const createUsersTable = `
+              CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                payload TEXT NOT NULL,
-                received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                status INTEGER NOT NULL,
-                destinations_sent INTEGER DEFAULT 0,
-                error_message TEXT,
-                endpoint_slug TEXT,
-                response_time INTEGER DEFAULT 0
+                nome TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                hash_senha TEXT NOT NULL,
+                funcao TEXT DEFAULT 'user',
+                ativo BOOLEAN DEFAULT 1,
+                ultimo_login DATETIME,
+                criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
               )
             `;
             
-            db.run(createLogsTable, (err) => {
+            db.run(createUsersTable, (err) => {
               if (err) {
-                console.error('Error creating webhook_logs table:', err.message);
+                console.error('Erro ao criar tabela usuarios:', err.message);
                 reject(err);
               } else {
-                console.log('Webhook logs table created or already exists');
-                resolve();
+                console.log('Tabela usuarios criada ou já existe');
+                
+                // Create audit_log table for tracking user actions
+                const createAuditLogTable = `
+                  CREATE TABLE IF NOT EXISTS audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id INTEGER NOT NULL,
+                    acao TEXT NOT NULL,
+                    descricao TEXT,
+                    recurso_tipo TEXT,
+                    recurso_id INTEGER,
+                    ip TEXT,
+                    user_agent TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
+                  )
+                `;
+                
+                db.run(createAuditLogTable, (err) => {
+                  if (err) {
+                    console.error('Erro ao criar tabela audit_log:', err.message);
+                    reject(err);
+                  } else {
+                    console.log('Tabela audit_log criada ou já existe');
+                    
+                    // Migrate data from old tables to new redirecionamentos structure
+                    migrateDataToRedirecionamentos().then(() => {
+                      resolve();
+                    }).catch((migrateErr) => {
+                      console.error('Erro na migração de dados:', migrateErr);
+                      reject(migrateErr);
+                    });
+                  }
+                });
               }
             });
           }
@@ -85,34 +120,164 @@ const initDatabase = () => {
   });
 };
 
-// Initialize default data (default endpoint)
+// Migrate data from old tables to new redirecionamentos structure
+const migrateDataToRedirecionamentos = () => {
+  return new Promise((resolve, reject) => {
+    // First, migrate users to usuarios
+    db.run(`
+      INSERT OR IGNORE INTO usuarios (id, nome, email, hash_senha, funcao, ativo, ultimo_login, criado_em)
+      SELECT id, name, email, password_hash, role, active, last_login, created_at 
+      FROM users
+    `, (err) => {
+      if (err) {
+        console.error('Erro ao migrar dados de users:', err);
+        reject(err);
+      } else {
+        console.log('Dados de users migrados para usuarios');
+        
+        // Migrate webhook_logs to logs_webhook
+        db.run(`
+          INSERT OR IGNORE INTO logs_webhook (id, payload, recebido_em, status, destinos_enviados, mensagem_erro, slug_endpoint, tempo_resposta)
+          SELECT id, payload, received_at, status, destinations_sent, error_message, endpoint_slug, response_time 
+          FROM webhook_logs
+        `, (err) => {
+          if (err) {
+            console.error('Erro ao migrar dados de webhook_logs:', err);
+            reject(err);
+          } else {
+            console.log('Dados de webhook_logs migrados para logs_webhook');
+            
+            // Migrate endpoints and destinations to redirecionamentos
+            migrateEndpointsToRedirecionamentos().then(() => {
+              resolve();
+            }).catch((migrateErr) => {
+              console.error('Erro na migração de endpoints para redirecionamentos:', migrateErr);
+              reject(migrateErr);
+            });
+          }
+        });
+      }
+    });
+  });
+};
+
+// Migrate endpoints and their destinations to redirecionamentos
+const migrateEndpointsToRedirecionamentos = () => {
+  return new Promise((resolve, reject) => {
+    // Get all endpoints with their destinations
+    db.all(`
+      SELECT 
+        e.id, e.name, e.slug, e.description, e.active, e.created_at,
+        GROUP_CONCAT(d.url, '|') as urls
+      FROM webhook_endpoints e
+      LEFT JOIN destinations d ON e.id = d.webhook_endpoint_id AND d.active = 1
+      GROUP BY e.id, e.name, e.slug, e.description, e.active, e.created_at
+    `, (err, rows) => {
+      if (err) {
+        console.error('Erro ao buscar endpoints e destinos:', err);
+        reject(err);
+      } else {
+        console.log(`Encontrados ${rows.length} endpoints para migrar`);
+        
+        if (rows.length === 0) {
+          resolve();
+          return;
+        }
+        
+        // Insert each endpoint as a redirecionamento
+        let completed = 0;
+        rows.forEach((row) => {
+          const urls = row.urls ? row.urls.split('|').filter(url => url.trim()) : [];
+          const urlsJson = JSON.stringify(urls);
+          
+          db.run(`
+            INSERT OR IGNORE INTO redirecionamentos (id, nome, slug, descricao, urls, ativo, criado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `, [row.id, row.name, row.slug, row.description, urlsJson, row.active, row.created_at], (err) => {
+            if (err) {
+              console.error(`Erro ao migrar endpoint ${row.slug}:`, err);
+            } else {
+              console.log(`Endpoint ${row.slug} migrado para redirecionamento`);
+            }
+            
+            completed++;
+            if (completed === rows.length) {
+              console.log('Migração de endpoints para redirecionamentos concluída');
+              resolve();
+            }
+          });
+        });
+      }
+    });
+  });
+};
+
+// Initialize default data (default redirecionamento and admin user)
 const initializeDefaultData = () => {
   return new Promise((resolve, reject) => {
-    // Check if default endpoint already exists
-    db.get('SELECT id FROM webhook_endpoints WHERE slug = ?', ['default'], (err, row) => {
+    // Check if default redirecionamento already exists
+    db.get('SELECT id FROM redirecionamentos WHERE slug = ?', ['default'], (err, row) => {
       if (err) {
-        console.error('Error checking for default endpoint:', err.message);
+        console.error('Erro ao verificar redirecionamento padrão:', err.message);
         reject(err);
       } else if (!row) {
-        // Create default endpoint
+        // Create default redirecionamento with example URLs
+        const defaultUrls = [
+          'https://httpbin.org/post',
+          'https://webhook.silhouetteexperts.com.br/webhook/teste-kommo'
+        ];
+        
         db.run(
-          'INSERT INTO webhook_endpoints (name, slug, description) VALUES (?, ?, ?)',
-          ['Padrão', 'default', 'Endpoint padrão para webhooks gerais'],
+          'INSERT INTO redirecionamentos (nome, slug, descricao, urls) VALUES (?, ?, ?, ?)',
+          ['Padrão', 'default', 'Redirecionamento padrão para webhooks gerais', JSON.stringify(defaultUrls)],
           function(err) {
             if (err) {
-              console.error('Error creating default endpoint:', err.message);
+              console.error('Erro ao criar redirecionamento padrão:', err.message);
               reject(err);
             } else {
-              console.log('Default endpoint created with ID:', this.lastID);
-              resolve();
+              console.log('Redirecionamento padrão criado com ID:', this.lastID);
+              // After creating redirecionamento, check for admin user
+              checkAndCreateAdminUser(resolve, reject);
             }
           }
         );
       } else {
-        console.log('Default endpoint already exists');
-        resolve();
+        console.log('Redirecionamento padrão já existe');
+        // Check for admin user even if redirecionamento exists
+        checkAndCreateAdminUser(resolve, reject);
       }
     });
+  });
+};
+
+// Check and create admin user if it doesn't exist
+const checkAndCreateAdminUser = (resolve, reject) => {
+  const bcrypt = require('bcryptjs');
+  
+  db.get('SELECT id FROM usuarios WHERE email = ?', ['admin@webhook.local'], (err, row) => {
+    if (err) {
+      console.error('Erro ao verificar usuário admin:', err.message);
+      reject(err);
+    } else if (!row) {
+      // Create admin user in Portuguese table
+      const hashedPassword = bcrypt.hashSync('admin123', 10);
+      db.run(
+        'INSERT INTO usuarios (nome, email, hash_senha, funcao) VALUES (?, ?, ?, ?)',
+        ['Administrador', 'admin@webhook.local', hashedPassword, 'admin'],
+        function(err) {
+          if (err) {
+            console.error('Erro ao criar usuário admin:', err.message);
+            reject(err);
+          } else {
+            console.log('Usuário admin criado com ID:', this.lastID);
+            resolve();
+          }
+        }
+      );
+    } else {
+      console.log('Usuário admin já existe');
+      resolve();
+    }
   });
 };
 
@@ -121,9 +286,9 @@ const initializeDatabase = async () => {
   try {
     await initDatabase();
     await initializeDefaultData();
-    console.log('Database initialization completed successfully');
+    console.log('Inicialização do banco de dados concluída com sucesso');
   } catch (error) {
-    console.error('Database initialization failed:', error);
+    console.error('Falha na inicialização do banco de dados:', error);
     throw error;
   }
 };
@@ -133,10 +298,10 @@ const closeDatabase = () => {
   return new Promise((resolve, reject) => {
     db.close((err) => {
       if (err) {
-        console.error('Error closing database:', err.message);
+        console.error('Erro ao fechar banco de dados:', err.message);
         reject(err);
       } else {
-        console.log('Database connection closed');
+        console.log('Conexão com banco de dados fechada');
         resolve();
       }
     });

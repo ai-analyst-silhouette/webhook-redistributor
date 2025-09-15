@@ -1,0 +1,23 @@
+/* ========================================
+   LOGS PAGE
+   ======================================== */
+
+.page-logs {
+  /* Estilos específicos da página Logs */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-logs {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-logs {
+    padding: 0;
+  }
+}

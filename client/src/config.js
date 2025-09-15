@@ -4,7 +4,7 @@ const config = {
   apiUrl: process.env.REACT_APP_API_URL || 
     (process.env.NODE_ENV === 'production' 
       ? 'https://redistribuidor-back.silhouetteexperts.com.br' 
-      : 'http://localhost:3002'),
+      : 'http://localhost:3001'),
   
   // Timeout para requisições
   timeout: 10000,
@@ -12,6 +12,14 @@ const config = {
   // Headers padrão
   defaultHeaders: {
     'Content-Type': 'application/json',
+  },
+  
+  // Rotas da API atualizadas para redirecionamentos
+  routes: {
+    redirecionamentos: '/api/redirecionamentos',
+    autenticacao: '/api/autenticacao',
+    logs: '/api/logs-webhook',
+    webhook: '/api/webhook'
   }
 };
 

@@ -1,0 +1,23 @@
+/* ========================================
+   USERS PAGE
+   ======================================== */
+
+.page-users {
+  /* Estilos específicos da página Users */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-users {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-users {
+    padding: 0;
+  }
+}

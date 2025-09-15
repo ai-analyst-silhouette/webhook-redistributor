@@ -1,0 +1,23 @@
+/* ========================================
+   DASHBOARD PAGE
+   ======================================== */
+
+.page-dashboard {
+  /* Estilos específicos da página Dashboard */
+  min-height: 100%;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+@media (max-width: 768px) {
+  .page-dashboard {
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-dashboard {
+    padding: 0;
+  }
+}
