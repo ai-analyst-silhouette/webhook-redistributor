@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api';
+import config from '../config';
 import './QuickSetup.css';
 
 const QuickSetup = ({ onComplete, onCancel }) => {
@@ -204,10 +205,7 @@ const QuickSetup = ({ onComplete, onCancel }) => {
           <span className="slug-prefix">/api/webhook/</span>
         </div>
         <div className="form-help">
-          URL completa: {process.env.NODE_ENV === 'production' 
-            ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${formData.endpointSlug || 'seu-slug'}`
-            : `http://localhost:3001/api/webhook/${formData.endpointSlug || 'seu-slug'}`
-          }
+          URL completa: {config.getBackendUrl()}/api/webhook/{formData.endpointSlug || 'seu-slug'}
         </div>
       </div>
 
