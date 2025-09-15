@@ -123,39 +123,80 @@ const initDatabase = () => {
 // Migrate data from old tables to new redirecionamentos structure
 const migrateDataToRedirecionamentos = () => {
   return new Promise((resolve, reject) => {
-    // First, migrate users to usuarios
-    db.run(`
-      INSERT OR IGNORE INTO usuarios (id, nome, email, hash_senha, funcao, ativo, ultimo_login, criado_em)
-      SELECT id, name, email, password_hash, role, active, last_login, created_at 
-      FROM users
-    `, (err) => {
+    // Check if old tables exist before trying to migrate
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, row) => {
       if (err) {
-        console.error('Erro ao migrar dados de users:', err);
+        console.error('Erro ao verificar tabela users:', err);
         reject(err);
-      } else {
-        console.log('Dados de users migrados para usuarios');
-        
-        // Migrate webhook_logs to logs_webhook
+      } else if (row) {
+        // Old users table exists, migrate it
         db.run(`
-          INSERT OR IGNORE INTO logs_webhook (id, payload, recebido_em, status, destinos_enviados, mensagem_erro, slug_endpoint, tempo_resposta)
+          INSERT OR IGNORE INTO usuarios (id, nome, email, hash_senha, funcao, ativo, ultimo_login, criado_em)
+          SELECT id, name, email, password_hash, role, active, last_login, created_at 
+          FROM users
+        `, (err) => {
+          if (err) {
+            console.error('Erro ao migrar dados de users:', err);
+            reject(err);
+          } else {
+            console.log('Dados de users migrados para usuarios');
+            migrateWebhookLogs().then(resolve).catch(resolve);
+          }
+        });
+      } else {
+        console.log('Tabela users não encontrada, pulando migração');
+        migrateWebhookLogs().then(resolve).catch(resolve);
+      }
+    });
+  });
+};
+
+// Migrate webhook logs
+const migrateWebhookLogs = () => {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='webhook_logs'", (err, row) => {
+      if (err) {
+        console.error('Erro ao verificar tabela webhook_logs:', err);
+        resolve();
+      } else if (row) {
+        // Old webhook_logs table exists, migrate it
+        db.run(`
+          INSERT OR IGNORE INTO logs_webhook (id, payload, recebido_em, status, destinos_enviados, mensagem_erro, slug_redirecionamento, tempo_resposta)
           SELECT id, payload, received_at, status, destinations_sent, error_message, endpoint_slug, response_time 
           FROM webhook_logs
         `, (err) => {
           if (err) {
             console.error('Erro ao migrar dados de webhook_logs:', err);
-            reject(err);
           } else {
             console.log('Dados de webhook_logs migrados para logs_webhook');
-            
-            // Migrate endpoints and destinations to redirecionamentos
-            migrateEndpointsToRedirecionamentos().then(() => {
-              resolve();
-            }).catch((migrateErr) => {
-              console.error('Erro na migração de endpoints para redirecionamentos:', migrateErr);
-              reject(migrateErr);
-            });
           }
+          migrateEndpoints().then(resolve).catch(resolve);
         });
+      } else {
+        console.log('Tabela webhook_logs não encontrada, pulando migração');
+        migrateEndpoints().then(resolve).catch(resolve);
+      }
+    });
+  });
+};
+
+// Migrate endpoints
+const migrateEndpoints = () => {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='webhook_endpoints'", (err, row) => {
+      if (err) {
+        console.error('Erro ao verificar tabela webhook_endpoints:', err);
+        resolve();
+      } else if (row) {
+        migrateEndpointsToRedirecionamentos().then(() => {
+          resolve();
+        }).catch((migrateErr) => {
+          console.error('Erro na migração de endpoints para redirecionamentos:', migrateErr);
+          resolve(); // Don't reject, just log the error
+        });
+      } else {
+        console.log('Tabela webhook_endpoints não encontrada, pulando migração');
+        resolve();
       }
     });
   });
@@ -284,8 +325,11 @@ const checkAndCreateAdminUser = (resolve, reject) => {
 // Initialize database
 const initializeDatabase = async () => {
   try {
+    console.log('Iniciando inicialização do banco de dados...');
     await initDatabase();
+    console.log('Tabelas criadas com sucesso');
     await initializeDefaultData();
+    console.log('Dados padrão inicializados com sucesso');
     console.log('Inicialização do banco de dados concluída com sucesso');
   } catch (error) {
     console.error('Falha na inicialização do banco de dados:', error);

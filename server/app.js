@@ -29,6 +29,10 @@ const { authenticateToken, apiRateLimiter } = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 3001; // Default to port 3001, but can be overridden by environment
 
+// Trust proxy for rate limiting behind reverse proxy (Traefik)
+// Configure trust proxy to handle X-Forwarded-For headers properly
+app.set('trust proxy', true);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
