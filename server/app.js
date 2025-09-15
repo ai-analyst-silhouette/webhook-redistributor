@@ -14,7 +14,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { initializeDatabase } = require('./database/init-postgres');
+const { initializeDatabase } = require('/app/database/init-postgres');
 const { toBrazilianTime } = require('./utils/timezone');
 
 // Import API routes
