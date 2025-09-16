@@ -28,10 +28,12 @@ const Logs = ({ onMessage, user }) => {
   const [stats, setStats] = useState({});
   const [expandedLog, setExpandedLog] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [availableSlugs, setAvailableSlugs] = useState([]);
 
   useEffect(() => {
     loadStats();
     loadLogs();
+    loadAvailableSlugs();
   }, [activeTab, filters]);
 
   // Auto-refresh every 10 seconds
@@ -62,6 +64,17 @@ const Logs = ({ onMessage, user }) => {
     }
   };
 
+  const loadAvailableSlugs = async () => {
+    try {
+      const response = await api.get('/api/logs/slugs');
+      if (response.data.success) {
+        setAvailableSlugs(response.data.data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar slugs disponíveis:', error);
+    }
+  };
+
   const loadLogs = async (silent = false) => {
     if (!silent) {
       setLoading(true);
@@ -74,7 +87,7 @@ const Logs = ({ onMessage, user }) => {
       console.log('Filtros atuais:', filters);
       
       Object.keys(filters).forEach(key => {
-        if (filters[key]) {
+        if (filters[key] !== '' && filters[key] !== null && filters[key] !== undefined) {
           params.append(key, filters[key]);
         }
       });
@@ -134,6 +147,46 @@ const Logs = ({ onMessage, user }) => {
     });
   };
 
+  const setDateRange = (period) => {
+    const now = new Date();
+    let startDate = '';
+    let endDate = '';
+
+    switch (period) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 16);
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString().slice(0, 16);
+        break;
+      case 'yesterday':
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        startDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).toISOString().slice(0, 16);
+        endDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59).toISOString().slice(0, 16);
+        break;
+      case 'last7days':
+        const last7Days = new Date(now);
+        last7Days.setDate(last7Days.getDate() - 7);
+        startDate = last7Days.toISOString().slice(0, 16);
+        endDate = now.toISOString().slice(0, 16);
+        break;
+      case 'last30days':
+        const last30Days = new Date(now);
+        last30Days.setDate(last30Days.getDate() - 30);
+        startDate = last30Days.toISOString().slice(0, 16);
+        endDate = now.toISOString().slice(0, 16);
+        break;
+      default:
+        return;
+    }
+
+    setFilters(prev => ({
+      ...prev,
+      start_date: startDate,
+      end_date: endDate,
+      page: 1
+    }));
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('pt-BR', {
       timeZone: 'America/Sao_Paulo',
@@ -176,19 +229,23 @@ const Logs = ({ onMessage, user }) => {
               onChange={(e) => handleFilterChange('status', e.target.value)}
             >
               <option value="">Todos</option>
-              <option value="success">Sucesso</option>
-              <option value="error">Erro</option>
+              <option value="200">Sucesso (200)</option>
+              <option value="404">Não Encontrado (404)</option>
+              <option value="500">Erro Interno (500)</option>
             </select>
           </div>
           
           <div className="filter-group">
             <label>Slug:</label>
-            <input
-              type="text"
+            <select
               value={filters.slug_redirecionamento}
               onChange={(e) => handleFilterChange('slug_redirecionamento', e.target.value)}
-              placeholder="Filtrar por slug"
-            />
+            >
+              <option value="">Todos</option>
+              {availableSlugs.map(slug => (
+                <option key={slug} value={slug}>{slug}</option>
+              ))}
+            </select>
           </div>
           
           <div className="filter-group">
@@ -207,6 +264,40 @@ const Logs = ({ onMessage, user }) => {
               value={filters.end_date}
               onChange={(e) => handleFilterChange('end_date', e.target.value)}
             />
+          </div>
+          
+          <div className="filter-group">
+            <label>Período:</label>
+            <div className="date-shortcuts">
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline"
+                onClick={() => setDateRange('today')}
+              >
+                Hoje
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline"
+                onClick={() => setDateRange('yesterday')}
+              >
+                Ontem
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline"
+                onClick={() => setDateRange('last7days')}
+              >
+                Últimos 7 dias
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline"
+                onClick={() => setDateRange('last30days')}
+              >
+                Últimos 30 dias
+              </button>
+            </div>
           </div>
         </div>
         

@@ -3,6 +3,33 @@ const router = express.Router();
 const { query } = require('../database/postgres');
 const { toBrazilianTime } = require('../utils/timezone');
 
+// GET /api/logs/slugs - Get available slugs for filtering
+router.get('/slugs', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT DISTINCT slug_redirecionamento 
+      FROM logs_webhook 
+      WHERE slug_redirecionamento IS NOT NULL 
+        AND slug_redirecionamento != ''
+      ORDER BY slug_redirecionamento
+    `);
+    
+    const slugs = result.rows.map(row => row.slug_redirecionamento);
+    
+    res.json({
+      success: true,
+      data: slugs
+    });
+  } catch (error) {
+    console.error('Erro ao buscar slugs disponíveis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: error.message
+    });
+  }
+});
+
 // GET /api/logs/webhook - Get webhook logs with pagination and filters
 router.get('/webhook', async (req, res) => {
   try {
