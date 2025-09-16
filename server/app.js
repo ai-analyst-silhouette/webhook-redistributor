@@ -14,7 +14,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { initializeDatabase } = require('/app/database/init-postgres');
+const { initializeDatabase } = require('./database/init-postgres');
 const { toBrazilianTime } = require('./utils/timezone');
 
 // Import API routes
@@ -22,8 +22,8 @@ const authRoutes = require('./routes/auth-postgres');     // Authentication rout
 const webhookRoutes = require('./routes/webhook');        // Webhook reception and redistribution
 const redirecionamentosRoutes = require('./routes/redirecionamentos-normalized'); // Redirecionamentos CRUD operations (normalized)
 const usuariosRoutes = require('./routes/usuarios');      // User management
-const logsRoutes = require('./routes/logs');              // Logs and statistics
 const exportRoutes = require('./routes/export');          // Export/import configuration
+const logsRoutes = require('./routes/logs');              // Logs and monitoring
 
 // Import authentication middleware
 const { authenticateToken, apiRateLimiter } = require('./middleware/auth');
@@ -88,8 +88,8 @@ app.use('/api/autenticacao', authRoutes);                    // Authentication r
 app.use('/api/webhook', webhookRoutes);                      // Webhook reception (no auth required for webhook reception)
 app.use('/api/redirecionamentos', authenticateToken, redirecionamentosRoutes); // Redirecionamentos CRUD operations (auth required)
 app.use('/api/usuarios', authenticateToken, usuariosRoutes); // User management (auth required)
-app.use('/api/logs-webhook', authenticateToken, logsRoutes);          // Logs and statistics (auth required)
 app.use('/api/exportar', authenticateToken, exportRoutes);            // Export/import configuration (auth required)
+app.use('/api/logs', authenticateToken, logsRoutes);         // Logs and monitoring (auth required)
 
 // Temporary routes for frontend compatibility
 app.get('/api/endpoints', authenticateToken, (req, res) => {

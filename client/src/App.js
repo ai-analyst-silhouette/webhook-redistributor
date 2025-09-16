@@ -6,10 +6,10 @@ import {
   Dashboard, 
   Redirecionamentos, 
   NewRedirecionamento,
-  Logs, 
   Stats, 
   Settings, 
-  Users
+  Users,
+  Logs
 } from './components/pages';
 import UserProfile from './components/UserProfile';
 import HelpPage from './components/HelpPage';
@@ -118,10 +118,10 @@ function App() {
     const titles = {
       'redirecionamentos': 'Redirecionamentos',
       'novo-redirecionamento': 'Novo Redirecionamento',
-      'logs': 'Logs',
       'stats': 'Estatísticas',
       'settings': 'Configurações',
       'usuarios': 'Usuários',
+      'logs': 'Logs',
       'help': 'Ajuda',
       'dashboard': 'Dashboard'
     };
@@ -134,14 +134,14 @@ function App() {
         return <Redirecionamentos onMessage={showMessage} user={user} onRef={setRedirecionamentoManagerRef} />;
       case 'novo-redirecionamento':
         return <NewRedirecionamento onMessage={showMessage} user={user} onBack={() => setCurrentView('redirecionamentos')} />;
-      case 'logs':
-        return <Logs onMessage={showMessage} isVisible={currentView === 'logs'} />;
       case 'stats':
         return <Stats onMessage={showMessage} isVisible={currentView === 'stats'} />;
       case 'settings':
         return <Settings />;
       case 'usuarios':
         return <Users onMessage={showMessage} user={user} />;
+      case 'logs':
+        return <Logs onMessage={showMessage} />;
       case 'help':
         return <HelpPage onBack={() => setCurrentView('redirecionamentos')} />;
       default:

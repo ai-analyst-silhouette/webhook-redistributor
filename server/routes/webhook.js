@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { query } = require('../database/postgres');
-const { logEndpointUsage, logEndpointResponse, getDetailedEndpointStats } = require('../middleware/endpointLogger');
-const logs = require('../database/logs');
 const messages = require('../config/messages');
 const { toBrazilianTime } = require('../utils/timezone');
 
 // POST /api/webhook - Receive webhook payload (default redirecionamento)
-router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
-  let logStatus = 'success';
-  let errorMessage = null;
+router.post('/', async (req, res) => {
   let redistributionResults = [];
+  const startTime = Date.now();
+  let logId = null;
 
   try {
     if (process.env.LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
@@ -22,6 +20,24 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
       console.log('==========================================');
     }
 
+    // Log webhook reception
+    const logResult = await query(`
+      INSERT INTO logs_webhook (payload, status, destinos_enviados, slug_redirecionamento, tempo_resposta, ip_origem, user_agent, headers)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `, [
+      JSON.stringify(req.body),
+      0, // Will be updated after processing
+      0, // Will be updated after processing
+      'default',
+      0, // Will be updated after processing
+      req.ip || req.connection.remoteAddress,
+      req.get('User-Agent'),
+      JSON.stringify(req.headers)
+    ]);
+    
+    logId = logResult.rows[0].id;
+
     try {
       // Route to default redirecionamento
       const result = await routeToDefaultRedirecionamento(req.body, req.headers, req.query);
@@ -29,15 +45,29 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
       if (result.success) {
         redistributionResults = result.redistribution.results;
       } else {
-        logStatus = 'error';
-        errorMessage = result.message;
         redistributionResults = [];
       }
     } catch (redistributionError) {
       console.error('Erro durante redistribuição do webhook:', redistributionError);
-      logStatus = 'error';
-      errorMessage = redistributionError.message;
     }
+
+    const responseTime = Date.now() - startTime;
+    const successful = redistributionResults.filter(r => r.success).length;
+    const failed = redistributionResults.filter(r => !r.success).length;
+    const status = failed === 0 ? 200 : (successful > 0 ? 207 : 500); // 207 = Multi-Status
+
+    // Update log with final results
+    await query(`
+      UPDATE logs_webhook 
+      SET status = $1, destinos_enviados = $2, tempo_resposta = $3, mensagem_erro = $4
+      WHERE id = $5
+    `, [
+      status,
+      redistributionResults.length,
+      responseTime,
+      failed > 0 ? `${failed} destinos falharam` : null,
+      logId
+    ]);
 
     const response = {
       success: true,
@@ -46,23 +76,11 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
       receivedData: { headers: req.headers, body: req.body, query: req.query },
       redistribution: {
         attempted: redistributionResults.length,
-        successful: redistributionResults.filter(r => r.success).length,
-        failed: redistributionResults.filter(r => !r.success).length,
+        successful: successful,
+        failed: failed,
         results: redistributionResults
       }
     };
-
-    // Log the webhook to database
-    try {
-      await logs.createWebhookLog(
-        req.body,
-        logStatus,
-        redistributionResults.length,
-        errorMessage
-      );
-    } catch (logError) {
-      console.error('Erro ao registrar webhook:', logError);
-    }
 
     console.log('=== WEBHOOK PROCESSING COMPLETE ===');
     console.log(`Redistribution: ${response.redistribution.successful}/${response.redistribution.attempted} successful`);
@@ -71,13 +89,14 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.error('Erro ao processar webhook:', error);
-    logStatus = 'error';
-    errorMessage = error.message;
     
-    try {
-      await logs.createWebhookLog(req.body, logStatus, 0, errorMessage);
-    } catch (logError) {
-      console.error('Erro ao registrar falha no processamento do webhook:', logError);
+    // Update log with error
+    if (logId) {
+      await query(`
+        UPDATE logs_webhook 
+        SET status = $1, tempo_resposta = $2, mensagem_erro = $3
+        WHERE id = $4
+      `, [500, Date.now() - startTime, error.message, logId]);
     }
     
     res.status(500).json({ success: false, message: messages.ERROR.WEBHOOK_PROCESSING_ERROR, error: error.message });
@@ -85,11 +104,11 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
 });
 
 // POST /api/webhook/:slug - Receive webhook payload for specific redirecionamento
-router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) => {
+router.post('/:slug', async (req, res) => {
   const { slug } = req.params;
-  let logStatus = 'success';
-  let errorMessage = null;
   let redistributionResults = [];
+  const startTime = Date.now();
+  let logId = null;
 
   try {
     console.log(`=== WEBHOOK RECEIVED (REDIRECIONAMENTO: ${slug}) ===`);
@@ -99,6 +118,24 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
     console.log('Query params:', req.query);
     console.log('==========================================');
 
+    // Log webhook reception
+    const logResult = await query(`
+      INSERT INTO logs_webhook (payload, status, destinos_enviados, slug_redirecionamento, tempo_resposta, ip_origem, user_agent, headers)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `, [
+      JSON.stringify(req.body),
+      0, // Will be updated after processing
+      0, // Will be updated after processing
+      slug,
+      0, // Will be updated after processing
+      req.ip || req.connection.remoteAddress,
+      req.get('User-Agent'),
+      JSON.stringify(req.headers)
+    ]);
+    
+    logId = logResult.rows[0].id;
+
     try {
       // Route to specific redirecionamento
       const result = await routeToRedirecionamento(slug, req.body, req.headers, req.query);
@@ -106,23 +143,43 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
       if (result.success) {
         redistributionResults = result.redistribution.results;
       } else {
-        logStatus = 'error';
-        errorMessage = result.message;
         redistributionResults = [];
         
-        // Return appropriate error status
+        // Update log with error and return appropriate error status
+        await query(`
+          UPDATE logs_webhook 
+          SET status = $1, tempo_resposta = $2, mensagem_erro = $3
+          WHERE id = $4
+        `, [result.statusCode || 500, Date.now() - startTime, result.message, logId]);
+        
         return res.status(result.statusCode || 500).json({
           success: false,
           message: result.message,
           error: result.error,
-          timestamp: new Date().toISOString()
+          timestamp: toBrazilianTime()
         });
       }
     } catch (redistributionError) {
       console.error('Erro durante redistribuição do webhook:', redistributionError);
-      logStatus = 'error';
-      errorMessage = redistributionError.message;
     }
+
+    const responseTime = Date.now() - startTime;
+    const successful = redistributionResults.filter(r => r.success).length;
+    const failed = redistributionResults.filter(r => !r.success).length;
+    const status = failed === 0 ? 200 : (successful > 0 ? 207 : 500); // 207 = Multi-Status
+
+    // Update log with final results
+    await query(`
+      UPDATE logs_webhook 
+      SET status = $1, destinos_enviados = $2, tempo_resposta = $3, mensagem_erro = $4
+      WHERE id = $5
+    `, [
+      status,
+      redistributionResults.length,
+      responseTime,
+      failed > 0 ? `${failed} destinos falharam` : null,
+      logId
+    ]);
 
     const response = {
       success: true,
@@ -135,23 +192,11 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
       receivedData: { headers: req.headers, body: req.body, query: req.query },
       redistribution: {
         attempted: redistributionResults.length,
-        successful: redistributionResults.filter(r => r.success).length,
-        failed: redistributionResults.filter(r => !r.success).length,
+        successful: successful,
+        failed: failed,
         results: redistributionResults
       }
     };
-
-    // Log the webhook to database
-    try {
-      await logs.createWebhookLog(
-        req.body,
-        logStatus,
-        redistributionResults.length,
-        errorMessage
-      );
-    } catch (logError) {
-      console.error('Erro ao registrar webhook:', logError);
-    }
 
     console.log('=== WEBHOOK PROCESSING COMPLETE ===');
     console.log(`Redistribution: ${response.redistribution.successful}/${response.redistribution.attempted} successful`);
@@ -160,13 +205,14 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
     res.status(200).json(response);
   } catch (error) {
     console.error('Erro ao processar webhook:', error);
-    logStatus = 'error';
-    errorMessage = error.message;
     
-    try {
-      await logs.createWebhookLog(req.body, logStatus, 0, errorMessage);
-    } catch (logError) {
-      console.error('Erro ao registrar falha no processamento do webhook:', logError);
+    // Update log with error
+    if (logId) {
+      await query(`
+        UPDATE logs_webhook 
+        SET status = $1, tempo_resposta = $2, mensagem_erro = $3
+        WHERE id = $4
+      `, [500, Date.now() - startTime, error.message, logId]);
     }
     
     res.status(500).json({ success: false, message: messages.ERROR.WEBHOOK_PROCESSING_ERROR, error: error.message });
@@ -177,25 +223,11 @@ router.post('/:slug', logEndpointUsage, logEndpointResponse, async (req, res) =>
 router.get('/', (req, res) => {
   res.json({
     message: 'Webhook endpoint is ready',
-    timestamp: new Date().toISOString(),
+    timestamp: toBrazilianTime(),
     status: 'active'
   });
 });
 
-// GET /api/webhook/stats - Get endpoint usage statistics
-router.get('/stats', async (req, res) => {
-  try {
-    const stats = await getDetailedEndpointStats();
-    res.json(stats);
-  } catch (error) {
-    console.error('Error getting endpoint stats:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error getting endpoint statistics',
-      error: error.message
-    });
-  }
-});
 
 // GET /api/webhook/:slug - Health check for specific endpoint
 router.get('/:slug', async (req, res) => {
@@ -227,7 +259,7 @@ router.get('/:slug', async (req, res) => {
 });
 
 // Route to default redirecionamento
-async function routeToDefaultRedirecionamento(payload, headers, query) {
+async function routeToDefaultRedirecionamento(payload, headers, queryParams) {
   try {
     // Get default redirecionamento
     const result = await query('SELECT * FROM redirecionamentos WHERE slug = $1 AND ativo = true', ['default']);
@@ -292,7 +324,7 @@ async function routeToDefaultRedirecionamento(payload, headers, query) {
 }
 
 // Route to specific redirecionamento
-async function routeToRedirecionamento(slug, payload, headers, query) {
+async function routeToRedirecionamento(slug, payload, headers, queryParams) {
   try {
     // Get redirecionamento by slug
     const result = await query('SELECT * FROM redirecionamentos WHERE slug = $1 AND ativo = true', [slug]);
@@ -362,7 +394,7 @@ async function redistributeToUrls(urls, payload, headers, redirecionamentoSlug) 
   const results = [];
   
   console.log('=== STARTING WEBHOOK REDISTRIBUTION ===');
-  console.log('Timestamp:', new Date().toISOString());
+  console.log('Timestamp:', toBrazilianTime());
   console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
   console.log(`Redirecionamento ID: ${redirecionamentoSlug}`);
   console.log(`Encontradas ${urls.length} URL(s) ativa(s) para redirecionamento ${redirecionamentoSlug}:`);
@@ -380,7 +412,7 @@ async function redistributeToUrls(urls, payload, headers, redirecionamentoSlug) 
     console.log(`   Headers: {`);
     console.log(`  'Content-Type': 'application/json',`);
     console.log(`  'User-Agent': 'Webhook-Redistributor/1.0',`);
-    console.log(`  'X-Redistributed-At': '${new Date().toISOString()}',`);
+    console.log(`  'X-Redistributed-At': '${toBrazilianTime()}',`);
     console.log(`  'X-Redistributed-From': 'webhook-redistributor'`);
     console.log(`}`);
     console.log(`   Payload: ${JSON.stringify(payload, null, 2)}`);

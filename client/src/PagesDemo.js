@@ -4,7 +4,6 @@ import AppLayout from './components/Layout/AppLayout';
 import { 
   Dashboard, 
   Redirecionamentos, 
-  Logs, 
   Stats, 
   Settings, 
   Users
@@ -34,7 +33,6 @@ const PagesDemo = () => {
             <ul>
               <li>✅ Dashboard - Visão geral do sistema</li>
               <li>✅ Redirecionamentos - Gerenciar webhooks</li>
-              <li>✅ Logs - Histórico de atividades</li>
               <li>✅ Estatísticas - Métricas e relatórios</li>
               <li>✅ Configurações - Configurações do sistema</li>
               <li>✅ Usuários - Gerenciar usuários</li>

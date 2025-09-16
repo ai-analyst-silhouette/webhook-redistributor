@@ -31,7 +31,7 @@ const config = {
   routes: {
     redirecionamentos: '/api/redirecionamentos',
     autenticacao: '/api/autenticacao',
-    logs: '/api/logs-webhook',
+    logs: '/api/logs',
     webhook: '/api/webhook'
   }
 };

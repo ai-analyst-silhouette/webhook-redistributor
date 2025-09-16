@@ -5,11 +5,11 @@ import './Sidebar.css';
 
 // Importar ícones da pasta assets
 import redirecionarIcon from '../../assets/icons/redirecionar.png';
-import logsIcon from '../../assets/icons/logs.png';
 import estatisticaIcon from '../../assets/icons/estatistica.png';
 import configIcon from '../../assets/icons/config.png';
 import helpIcon from '../../assets/icons/help.png';
 import usersIcon from '../../assets/icons/users.png';
+import logsIcon from '../../assets/icons/logs.png';
 
 // Função para verificar se é um ícone de texto
 const isTextIcon = (icon) => {
@@ -43,18 +43,18 @@ const Sidebar = ({ onNavigate, currentView, onNewRedirecionamento }) => {
       description: 'Gerenciar webhooks'
     },
     {
-      id: 'logs',
-      label: 'Logs',
-      icon: logsIcon,
-      view: 'logs',
-      description: 'Histórico de atividades'
-    },
-    {
       id: 'stats',
       label: 'Estatísticas',
       icon: estatisticaIcon,
       view: 'stats',
       description: 'Métricas e relatórios'
+    },
+    {
+      id: 'logs',
+      label: 'Logs',
+      icon: logsIcon,
+      view: 'logs',
+      description: 'Visualizar logs do sistema'
     },
     {
       id: 'usuarios',

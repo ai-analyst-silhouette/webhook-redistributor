@@ -1,6 +1,5 @@
 import React from 'react';
 import RedirecionamentoManager from './RedirecionamentoManager';
-import Logs from './Logs';
 import Stats from './Stats';
 import Settings from './Settings';
 import './Dashboard.css';
@@ -20,10 +19,6 @@ const Dashboard = ({ currentView = 'redirecionamentos', onMessage, user }) => {
         <RedirecionamentoManager onMessage={showMessage} user={user} />
       )}
 
-      {/* Logs View */}
-      {currentView === 'logs' && (
-        <Logs onMessage={showMessage} />
-      )}
 
       {/* Stats View */}
       {currentView === 'stats' && (

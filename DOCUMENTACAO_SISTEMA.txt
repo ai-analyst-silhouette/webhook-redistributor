@@ -1,0 +1,237 @@
+===============================================================================
+                    SISTEMA DE REDISTRIBUIÇÃO DE WEBHOOKS
+===============================================================================
+
+VISÃO GERAL
+-----------
+O Sistema de Redistribuição de Webhooks é uma solução completa para receber,
+processar e redistribuir webhooks para múltiplos destinos. O sistema garante
+alta disponibilidade, monitoramento em tempo real e logs detalhados de todas
+as transações.
+
+ARQUITETURA
+-----------
+O sistema é composto por:
+
+1. BACKEND (Node.js + Express)
+   - API REST para recebimento de webhooks
+   - Sistema de autenticação JWT
+   - Redistribuição para múltiplos destinos
+   - Logs detalhados de transações
+   - Estatísticas em tempo real
+
+2. FRONTEND (React)
+   - Interface web responsiva
+   - Dashboard de estatísticas
+   - Visualização de logs
+   - Gerenciamento de configurações
+   - Auto-refresh a cada 10 segundos
+
+3. BANCO DE DADOS (PostgreSQL)
+   - logs_webhook: Logs de transações
+   - audit_log: Logs de auditoria
+   - Configurações de redirecionamento
+
+4. INFRAESTRUTURA
+   - Docker Swarm para orquestração
+   - Traefik como reverse proxy
+   - SSL/TLS automático
+   - Timezone: America/Sao_Paulo
+
+FUNCIONALIDADES PRINCIPAIS
+---------------------------
+
+1. RECEBIMENTO DE WEBHOOKS
+   - Endpoint único para recebimento
+   - Validação de payload
+   - Logs automáticos de entrada
+   - Rate limiting e proteção
+
+2. REDISTRIBUIÇÃO INTELIGENTE
+   - Múltiplos destinos por webhook
+   - Retry automático em caso de falha
+   - Timeout configurável
+   - Logs detalhados de cada tentativa
+
+3. MONITORAMENTO EM TEMPO REAL
+   - Dashboard de estatísticas
+   - Taxa de sucesso/erro
+   - Tempo médio de resposta
+   - Logs de transações
+   - Auto-refresh a cada 10 segundos
+
+4. SEGURANÇA
+   - Autenticação JWT
+   - CORS configurado
+   - Rate limiting
+   - Logs de auditoria
+   - Headers de segurança
+
+ESTRUTURA DO BANCO DE DADOS
+----------------------------
+
+Tabela: logs_webhook
+- id: Identificador único
+- payload: Dados recebidos
+- recebido_em: Timestamp de recebimento
+- status: Status HTTP da redistribuição
+- destinos_enviados: Número de destinos processados
+- mensagem_erro: Erro (se houver)
+- slug_redirecionamento: Identificador do redirecionamento
+- tempo_resposta: Tempo total de processamento
+- ip_origem: IP de origem
+- user_agent: User agent do cliente
+- headers: Headers HTTP recebidos
+
+Tabela: audit_log
+- id: Identificador único
+- usuario_id: ID do usuário
+- acao: Ação realizada
+- descricao: Descrição da ação
+- recurso_tipo: Tipo de recurso
+- recurso_id: ID do recurso
+- ip: IP do usuário
+- user_agent: User agent
+- timestamp: Timestamp da ação
+- dados_anteriores: Dados antes da alteração
+- dados_novos: Dados após alteração
+
+ENDPOINTS DA API
+----------------
+
+GET /api/logs/stats
+- Retorna estatísticas gerais do sistema
+- Taxa de sucesso, total de webhooks, etc.
+
+GET /api/logs/webhook
+- Lista logs de webhooks com filtros
+- Paginação e busca
+
+GET /api/logs/audit
+- Lista logs de auditoria
+- Filtros por usuário e ação
+
+POST /api/webhook/:slug
+- Endpoint principal para recebimento de webhooks
+- Processa e redistribui automaticamente
+
+CONFIGURAÇÃO E DEPLOY
+---------------------
+
+1. CONFIGURAÇÃO DO AMBIENTE
+   - Docker e Docker Swarm
+   - Traefik configurado
+   - Banco PostgreSQL acessível
+   - Domínios configurados
+
+2. VARIÁVEIS DE AMBIENTE
+   - DB_HOST: Host do banco de dados
+   - DB_PORT: Porta do banco
+   - DB_NAME: Nome da base
+   - DB_USER: Usuário do banco
+   - DB_PASSWORD: Senha do banco
+   - TZ: Timezone (America/Sao_Paulo)
+   - WEBHOOK_TIMEOUT: Timeout para redistribuição
+   - MAX_RETRIES: Máximo de tentativas
+
+3. DEPLOY
+   - Build das imagens Docker
+   - Push para Docker Hub
+   - Deploy via Docker Stack
+   - Configuração do Traefik
+
+MONITORAMENTO E LOGS
+--------------------
+
+1. DASHBOARD DE ESTATÍSTICAS
+   - Total de webhooks processados
+   - Taxa de sucesso/erro
+   - Webhooks do dia
+   - Tempo médio de resposta
+   - Usuários únicos
+   - Logs de auditoria
+
+2. LOGS DE TRANSAÇÕES
+   - Histórico completo de webhooks
+   - Status de cada redistribuição
+   - Tempo de processamento
+   - Erros e exceções
+   - Filtros e busca
+
+3. AUTO-REFRESH
+   - Atualização automática a cada 10 segundos
+   - Indicador visual de refresh
+   - Dados sempre atualizados
+
+SEGURANÇA E PERFORMANCE
+-----------------------
+
+1. SEGURANÇA
+   - Autenticação JWT obrigatória
+   - CORS configurado para domínios específicos
+   - Rate limiting para proteção
+   - Headers de segurança
+   - Logs de auditoria completos
+
+2. PERFORMANCE
+   - Processamento assíncrono
+   - Retry automático em falhas
+   - Timeout configurável
+   - Logs otimizados
+   - Interface responsiva
+
+3. DISPONIBILIDADE
+   - Docker Swarm para alta disponibilidade
+   - Restart automático em falhas
+   - Health checks
+   - Monitoramento contínuo
+
+TROUBLESHOOTING
+---------------
+
+1. PROBLEMAS COMUNS
+   - Verificar logs do Docker Swarm
+   - Validar conectividade com banco
+   - Verificar configuração do Traefik
+   - Confirmar variáveis de ambiente
+
+2. LOGS IMPORTANTES
+   - Backend: Logs de aplicação
+   - Frontend: Console do navegador
+   - Docker: Logs dos containers
+   - Traefik: Logs de proxy
+
+3. MONITORAMENTO
+   - Dashboard de estatísticas
+   - Logs de transações
+   - Status dos serviços
+   - Performance da API
+
+TECNOLOGIAS UTILIZADAS
+----------------------
+
+Backend:
+- Node.js 18
+- Express.js
+- PostgreSQL
+- JWT
+- Docker
+
+Frontend:
+- React 18
+- CSS3
+- JavaScript ES6+
+- Docker
+
+Infraestrutura:
+- Docker Swarm
+- Traefik
+- PostgreSQL
+- SSL/TLS
+
+CONTATO E SUPORTE
+-----------------
+Para dúvidas ou suporte técnico, consulte os logs do sistema
+ou verifique a documentação técnica específica.
+
+===============================================================================

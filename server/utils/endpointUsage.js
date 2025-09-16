@@ -8,7 +8,7 @@
  */
 
 const { query } = require('../database/postgres');
-const { logWebhook } = require('../database/logs');
+// const { logWebhook } = require('../database/logs'); // Removed - logs are handled in webhook routes
 
 // In-memory usage tracking (in production, this should be in a database)
 const usageTracker = new Map();

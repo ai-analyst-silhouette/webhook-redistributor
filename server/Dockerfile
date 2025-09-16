@@ -3,8 +3,12 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init for proper signal handling and timezone data
+RUN apk add --no-cache dumb-init tzdata
+
+# Set timezone
+ENV TZ=America/Sao_Paulo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \

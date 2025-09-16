@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/Layout/AppLayout';
-import { Dashboard, Redirecionamentos, Logs } from './components/pages';
+import { Dashboard, Redirecionamentos } from './components/pages';
 
 const SidebarDemo = () => {
   return (
@@ -18,9 +18,6 @@ const SidebarDemo = () => {
           </AppLayout>
         } />
         <Route path="/logs" element={
-          <AppLayout pageTitle="Logs">
-            <Logs />
-          </AppLayout>
         } />
         <Route path="/stats" element={
           <AppLayout pageTitle="Estatísticas">

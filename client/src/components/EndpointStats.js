@@ -18,8 +18,8 @@ const EndpointStats = ({ selectedEndpoint = null, onEndpointSelect }) => {
       setError(null);
       
       const url = selectedEndpoint 
-        ? `/api/stats/by-endpoint?endpoint=${selectedEndpoint}&range=${timeRange}`
-        : `/api/stats/by-endpoint?range=${timeRange}`;
+        ? `/api/logs/stats/by-endpoint?endpoint=${selectedEndpoint}&range=${timeRange}`
+        : `/api/logs/stats/by-endpoint?range=${timeRange}`;
       
       const response = await api.get(url);
       

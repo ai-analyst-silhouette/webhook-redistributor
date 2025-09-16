@@ -11,13 +11,19 @@ const Stats = ({ onMessage, isVisible = true }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const hasLoadedRef = useRef(false);
 
   useEffect(() => {
     if (isVisible) {
       fetchStats(false); // Primeira carga não é auto-refresh
       // Refresh stats every 10 seconds para dados mais atualizados
-      const interval = setInterval(() => fetchStats(true), 10000);
+      const interval = setInterval(() => {
+        setRefreshing(true);
+        fetchStats(true).finally(() => {
+          setRefreshing(false);
+        });
+      }, 10000);
       return () => clearInterval(interval);
     }
   }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -31,12 +37,33 @@ const Stats = ({ onMessage, isVisible = true }) => {
         setLoading(true);
       }
       
-      const token = localStorage.getItem('authToken') ;
+      const token = localStorage.getItem('authToken');
       
       const response = await api.get(config.routes.logs + '/stats');
       
       if (response.data.success) {
-        setStats(response.data.data);
+        const data = response.data.data;
+        const webhookStats = data.webhook;
+        const auditStats = data.audit;
+        
+        // Calculate success rate
+        const successRate = webhookStats.total_webhooks > 0 
+          ? Math.round((webhookStats.successful_webhooks / webhookStats.total_webhooks) * 100)
+          : 0;
+        
+        const processedStats = {
+          total: webhookStats.total_webhooks,
+          today: webhookStats.today_webhooks,
+          successful: webhookStats.successful_webhooks,
+          errors: webhookStats.failed_webhooks,
+          success_rate: successRate,
+          avg_response_time: webhookStats.avg_response_time,
+          total_audits: auditStats.total_audits,
+          today_audits: auditStats.today_audits,
+          unique_users: auditStats.unique_users
+        };
+        
+        setStats(processedStats);
         if (!hasLoadedRef.current && onMessage) {
           onMessage('success', 'Estatísticas carregadas com sucesso!');
           hasLoadedRef.current = true;
@@ -147,7 +174,7 @@ const Stats = ({ onMessage, isVisible = true }) => {
             alt="Estatísticas" 
             className="icon-img"
           />
-          Estatísticas
+          Estatísticas {refreshing && <span className="refresh-indicator">🔄</span>}
         </h2>
         <div className="header-actions">
           <button onClick={fetchStats} className="btn btn-secondary">

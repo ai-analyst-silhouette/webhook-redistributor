@@ -28,6 +28,7 @@ const {
   clearAllBlocks
 } = require('../middleware/auth');
 const { requirePermission, auditLog } = require('../middleware/permissions');
+const { logLogin, logLogout } = require('../utils/auditLogger');
 
 const router = express.Router();
 
@@ -96,7 +97,7 @@ router.post('/login', authRateLimiter, async (req, res) => {
     clearIPBlock(clientIP);
 
     // Log de auditoria
-    await auditLog(user.id, 'login', 'Login realizado com sucesso', 'usuario', user.id, clientIP, req.get('User-Agent'));
+    await logLogin(user.id, clientIP, req.get('User-Agent'));
 
     res.json({
       success: true,
@@ -128,7 +129,7 @@ router.post('/login', authRateLimiter, async (req, res) => {
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
     // Log de auditoria
-    await auditLog(req.user.id, 'logout', 'Logout realizado', 'usuario', req.user.id, req.ip, req.get('User-Agent'));
+    await logLogout(req.user.id, req.ip, req.get('User-Agent'));
 
     res.json({
       success: true,

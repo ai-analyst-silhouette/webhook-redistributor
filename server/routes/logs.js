@@ -1,99 +1,320 @@
 const express = require('express');
 const router = express.Router();
-const logs = require('../database/logs');
-const { authenticateToken } = require('../middleware/auth');
-const { requirePermission } = require('../middleware/permissions');
+const { query } = require('../database/postgres');
+const { toBrazilianTime } = require('../utils/timezone');
 
-// GET /api/logs - Get recent webhook logs
-router.get('/', authenticateToken, requirePermission('visualizar_logs'), async (req, res) => {
+// GET /api/logs/webhook - Get webhook logs with pagination and filters
+router.get('/webhook', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
-    const webhookLogs = await logs.getRecentWebhookLogs(limit);
-    
-    res.status(200).json({
-      success: true,
-      data: webhookLogs,
-      count: webhookLogs.length,
-      limit
-    });
-  } catch (error) {
-    console.error('Error fetching webhook logs:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook logs',
-      error: error.message
-    });
-  }
-});
+    const { 
+      page = 1, 
+      limit = 50, 
+      status, 
+      slug_redirecionamento,
+      start_date,
+      end_date,
+      search
+    } = req.query;
 
-// GET /api/logs/stats - Get webhook statistics
-router.get('/stats', authenticateToken, async (req, res) => {
-  try {
-    const stats = await logs.getWebhookStats();
-    
-    res.status(200).json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    console.error('Error fetching webhook stats:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook statistics',
-      error: error.message
-    });
-  }
-});
+    const offset = (page - 1) * limit;
+    let whereConditions = [];
+    let queryParams = [];
+    let paramCounter = 1;
 
-// GET /api/logs/range - Get webhook logs by date range
-router.get('/range', async (req, res) => {
-  try {
-    const { startDate, endDate, limit = 100 } = req.query;
-    
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        success: false,
-        message: 'startDate and endDate are required'
-      });
+    // Build WHERE conditions
+    if (status) {
+      whereConditions.push(`status = $${paramCounter}`);
+      queryParams.push(status);
+      paramCounter++;
     }
+
+    if (slug_redirecionamento) {
+      whereConditions.push(`slug_redirecionamento = $${paramCounter}`);
+      queryParams.push(slug_redirecionamento);
+      paramCounter++;
+    }
+
+    if (start_date) {
+      whereConditions.push(`recebido_em >= $${paramCounter}`);
+      queryParams.push(start_date);
+      paramCounter++;
+    }
+
+    if (end_date) {
+      whereConditions.push(`recebido_em <= $${paramCounter}`);
+      queryParams.push(end_date);
+      paramCounter++;
+    }
+
+    if (search) {
+      whereConditions.push(`(
+        payload::text ILIKE $${paramCounter} OR 
+        mensagem_erro ILIKE $${paramCounter} OR 
+        ip_origem ILIKE $${paramCounter} OR 
+        user_agent ILIKE $${paramCounter}
+      )`);
+      queryParams.push(`%${search}%`);
+      paramCounter++;
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM logs_webhook ${whereClause}`;
+    const countResult = await query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total);
+
+    // Get logs with pagination
+    const logsQuery = `
+      SELECT 
+        id,
+        payload,
+        recebido_em,
+        status,
+        destinos_enviados,
+        mensagem_erro,
+        slug_redirecionamento,
+        tempo_resposta,
+        ip_origem,
+        user_agent,
+        headers
+      FROM logs_webhook 
+      ${whereClause}
+      ORDER BY recebido_em DESC 
+      LIMIT $${paramCounter} OFFSET $${paramCounter + 1}
+    `;
     
-    const webhookLogs = await logs.getWebhookLogsByDateRange(startDate, endDate, parseInt(limit));
+    queryParams.push(parseInt(limit));
+    queryParams.push(offset);
     
-    res.status(200).json({
+    const logsResult = await query(logsQuery, queryParams);
+
+    // Get status summary
+    const summaryQuery = `
+      SELECT 
+        status,
+        COUNT(*) as count
+      FROM logs_webhook 
+      ${whereClause}
+      GROUP BY status
+      ORDER BY status
+    `;
+    
+    const summaryResult = await query(summaryQuery, queryParams.slice(0, -2)); // Remove limit and offset params
+
+    res.json({
       success: true,
-      data: webhookLogs,
-      count: webhookLogs.length,
-      startDate,
-      endDate,
-      limit: parseInt(limit)
+      data: {
+        logs: logsResult.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        },
+        summary: summaryResult.rows
+      }
     });
+
   } catch (error) {
-    console.error('Error fetching webhook logs by date range:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook logs by date range',
-      error: error.message
+    console.error('Erro ao buscar logs de webhook:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor',
+      error: error.message 
     });
   }
 });
 
-// GET /api/logs/:id - Get specific webhook log by ID
-router.get('/:id', async (req, res) => {
+// GET /api/logs/audit - Get audit logs with pagination and filters
+router.get('/audit', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { 
+      page = 1, 
+      limit = 50, 
+      usuario_id,
+      acao,
+      recurso_tipo,
+      start_date,
+      end_date,
+      search
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    let whereConditions = [];
+    let queryParams = [];
+    let paramCounter = 1;
+
+    // Build WHERE conditions
+    if (usuario_id) {
+      whereConditions.push(`usuario_id = $${paramCounter}`);
+      queryParams.push(usuario_id);
+      paramCounter++;
+    }
+
+    if (acao) {
+      whereConditions.push(`acao = $${paramCounter}`);
+      queryParams.push(acao);
+      paramCounter++;
+    }
+
+    if (recurso_tipo) {
+      whereConditions.push(`recurso_tipo = $${paramCounter}`);
+      queryParams.push(recurso_tipo);
+      paramCounter++;
+    }
+
+    if (start_date) {
+      whereConditions.push(`timestamp >= $${paramCounter}`);
+      queryParams.push(start_date);
+      paramCounter++;
+    }
+
+    if (end_date) {
+      whereConditions.push(`timestamp <= $${paramCounter}`);
+      queryParams.push(end_date);
+      paramCounter++;
+    }
+
+    if (search) {
+      whereConditions.push(`(
+        descricao ILIKE $${paramCounter} OR 
+        ip ILIKE $${paramCounter} OR 
+        user_agent ILIKE $${paramCounter}
+      )`);
+      queryParams.push(`%${search}%`);
+      paramCounter++;
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM audit_log ${whereClause}`;
+    const countResult = await query(countQuery, queryParams);
+    const total = parseInt(countResult.rows[0].total);
+
+    // Get logs with pagination
+    const logsQuery = `
+      SELECT 
+        id,
+        usuario_id,
+        acao,
+        descricao,
+        recurso_tipo,
+        recurso_id,
+        ip,
+        user_agent,
+        timestamp,
+        dados_anteriores,
+        dados_novos
+      FROM audit_log 
+      ${whereClause}
+      ORDER BY timestamp DESC 
+      LIMIT $${paramCounter} OFFSET $${paramCounter + 1}
+    `;
     
-    // This would require adding a getWebhookLogById function to logs.js
-    // For now, we'll return a 404
-    res.status(404).json({
-      success: false,
-      message: 'Individual log retrieval not implemented yet'
+    queryParams.push(parseInt(limit));
+    queryParams.push(offset);
+    
+    const logsResult = await query(logsQuery, queryParams);
+
+    // Get action summary
+    const summaryQuery = `
+      SELECT 
+        acao,
+        COUNT(*) as count
+      FROM audit_log 
+      ${whereClause}
+      GROUP BY acao
+      ORDER BY acao
+    `;
+    
+    const summaryResult = await query(summaryQuery, queryParams.slice(0, -2)); // Remove limit and offset params
+
+    res.json({
+      success: true,
+      data: {
+        logs: logsResult.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        },
+        summary: summaryResult.rows
+      }
     });
+
   } catch (error) {
-    console.error('Error fetching webhook log by ID:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook log',
-      error: error.message
+    console.error('Erro ao buscar logs de auditoria:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor',
+      error: error.message 
+    });
+  }
+});
+
+// GET /api/logs/stats - Get general statistics
+router.get('/stats', async (req, res) => {
+  try {
+    // Webhook logs stats
+    const webhookStatsQuery = `
+      SELECT 
+        COUNT(*) as total_webhooks,
+        COUNT(CASE WHEN status = 200 THEN 1 END) as successful_webhooks,
+        COUNT(CASE WHEN status >= 400 THEN 1 END) as failed_webhooks,
+        COUNT(CASE WHEN recebido_em >= CURRENT_DATE THEN 1 END) as today_webhooks,
+        COALESCE(AVG(tempo_resposta), 0) as avg_response_time
+      FROM logs_webhook
+    `;
+
+    // Audit logs stats
+    const auditStatsQuery = `
+      SELECT 
+        COUNT(*) as total_audits,
+        COUNT(CASE WHEN timestamp >= CURRENT_DATE THEN 1 END) as today_audits,
+        COUNT(DISTINCT usuario_id) as unique_users
+      FROM audit_log
+    `;
+
+    const [webhookStats, auditStats] = await Promise.all([
+      query(webhookStatsQuery),
+      query(auditStatsQuery)
+    ]);
+
+    // Process webhook stats to ensure numbers are returned
+    const webhookData = webhookStats.rows[0];
+    const processedWebhookStats = {
+      total_webhooks: parseInt(webhookData.total_webhooks) || 0,
+      successful_webhooks: parseInt(webhookData.successful_webhooks) || 0,
+      failed_webhooks: parseInt(webhookData.failed_webhooks) || 0,
+      today_webhooks: parseInt(webhookData.today_webhooks) || 0,
+      avg_response_time: parseFloat(webhookData.avg_response_time) || 0
+    };
+
+    // Process audit stats to ensure numbers are returned
+    const auditData = auditStats.rows[0];
+    const processedAuditStats = {
+      total_audits: parseInt(auditData.total_audits) || 0,
+      today_audits: parseInt(auditData.today_audits) || 0,
+      unique_users: parseInt(auditData.unique_users) || 0
+    };
+
+    res.json({
+      success: true,
+      data: {
+        webhook: processedWebhookStats,
+        audit: processedAuditStats
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas de logs:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor',
+      error: error.message 
     });
   }
 });
@@ -101,67 +322,82 @@ router.get('/:id', async (req, res) => {
 // GET /api/logs/stats/by-endpoint - Get statistics grouped by endpoint
 router.get('/stats/by-endpoint', async (req, res) => {
   try {
-    const { range = '24h', endpoint } = req.query;
+    const { endpoint, range = '24h' } = req.query;
     
-    // Calculate date range
-    const now = new Date();
-    let startDate;
+    // Calculate time range
+    let timeCondition = '';
+    let queryParams = [];
     
     switch (range) {
       case '1h':
-        startDate = new Date(now.getTime() - 60 * 60 * 1000);
+        timeCondition = 'AND recebido_em >= NOW() - INTERVAL \'1 hour\'';
         break;
       case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        timeCondition = 'AND recebido_em >= NOW() - INTERVAL \'24 hours\'';
         break;
       case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        timeCondition = 'AND recebido_em >= NOW() - INTERVAL \'7 days\'';
         break;
       case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        timeCondition = 'AND recebido_em >= NOW() - INTERVAL \'30 days\'';
         break;
       default:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        timeCondition = 'AND recebido_em >= NOW() - INTERVAL \'24 hours\'';
     }
-
-    const stats = await logs.getWebhookStatsByEndpoint(startDate, endpoint);
     
-    res.status(200).json({
+    let whereClause = `WHERE 1=1 ${timeCondition}`;
+    
+    if (endpoint) {
+      whereClause += ' AND slug_redirecionamento = $1';
+      queryParams.push(endpoint);
+    }
+    
+    const statsQuery = `
+      SELECT 
+        slug_redirecionamento as endpoint,
+        COUNT(*) as usage_count,
+        COUNT(CASE WHEN status = 200 THEN 1 END) as success_count,
+        COUNT(CASE WHEN status >= 400 THEN 1 END) as error_count,
+        ROUND(
+          (COUNT(CASE WHEN status = 200 THEN 1 END)::float / NULLIF(COUNT(*), 0)) * 100, 
+          2
+        ) as success_rate,
+        AVG(tempo_resposta) as avg_response_time,
+        MAX(recebido_em) as last_used
+      FROM logs_webhook 
+      ${whereClause}
+      GROUP BY slug_redirecionamento
+      ORDER BY usage_count DESC
+    `;
+    
+    const result = await query(statsQuery, queryParams);
+    
+    // Calculate totals
+    const totalUsage = result.rows.reduce((sum, row) => sum + parseInt(row.usage_count), 0);
+    const totalSuccess = result.rows.reduce((sum, row) => sum + parseInt(row.success_count), 0);
+    const totalErrors = result.rows.reduce((sum, row) => sum + parseInt(row.error_count), 0);
+    const overallSuccessRate = totalUsage > 0 ? Math.round((totalSuccess / totalUsage) * 100) : 0;
+    
+    res.json({
       success: true,
-      data: stats
+      data: {
+        endpoints: result.rows,
+        summary: {
+          total_usage: totalUsage,
+          total_success: totalSuccess,
+          total_errors: totalErrors,
+          overall_success_rate: overallSuccessRate,
+          time_range: range
+        }
+      }
     });
-  } catch (error) {
-    console.error('Error fetching webhook stats by endpoint:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook statistics by endpoint',
-      error: error.message
-    });
-  }
-});
 
-// GET /api/logs/endpoint/:slug - Get logs for specific endpoint
-router.get('/endpoint/:slug', async (req, res) => {
-  try {
-    const { slug } = req.params;
-    const limit = parseInt(req.query.limit) || 50;
-    const status = req.query.status;
-    
-    const webhookLogs = await logs.getWebhookLogsByEndpoint(slug, limit, status);
-    
-    res.status(200).json({
-      success: true,
-      data: webhookLogs,
-      count: webhookLogs.length,
-      limit,
-      endpoint: slug
-    });
   } catch (error) {
-    console.error('Error fetching webhook logs by endpoint:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching webhook logs for endpoint',
-      error: error.message
+    console.error('Erro ao buscar estatísticas por endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor',
+      error: error.message 
     });
   }
 });
