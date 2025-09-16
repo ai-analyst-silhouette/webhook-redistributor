@@ -27,16 +27,37 @@ const RedirecionamentoCard = ({
     : (redirecionamento.urls || '').split(',').map(url => url.trim()).filter(url => url);
     
   console.log('RedirecionamentoCard - urlsArray:', urlsArray);
+  console.log('RedirecionamentoCard - destinos:', redirecionamento.destinos);
 
   // Estado para controlar quais URLs estão ativas
   const [activeUrls, setActiveUrls] = useState(() => {
     const initialState = {};
-    urlsArray.forEach((url, index) => {
-      // Se a URL é um objeto com propriedade ativo, usa ela, senão assume true
-      initialState[index] = typeof url === 'object' && url.hasOwnProperty('ativo') ? url.ativo : true;
+    // Usar destinos se disponível, senão usar urlsArray
+    const sourceData = redirecionamento.destinos && redirecionamento.destinos.length > 0 
+      ? redirecionamento.destinos 
+      : urlsArray;
+    
+    sourceData.forEach((item, index) => {
+      // Se o item é um objeto com propriedade ativo, usa ela, senão assume true
+      initialState[index] = typeof item === 'object' && item.hasOwnProperty('ativo') ? item.ativo : true;
     });
     return initialState;
   });
+
+  // Atualizar estado quando os dados do redirecionamento mudarem
+  React.useEffect(() => {
+    const newActiveUrls = {};
+    // Usar destinos se disponível, senão usar urlsArray
+    const sourceData = redirecionamento.destinos && redirecionamento.destinos.length > 0 
+      ? redirecionamento.destinos 
+      : urlsArray;
+    
+    sourceData.forEach((item, index) => {
+      // Se o item é um objeto com propriedade ativo, usa ela, senão assume true
+      newActiveUrls[index] = typeof item === 'object' && item.hasOwnProperty('ativo') ? item.ativo : true;
+    });
+    setActiveUrls(newActiveUrls);
+  }, [redirecionamento.destinos, redirecionamento.urls]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('pt-BR');

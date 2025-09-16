@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
+import PermissionWrapper from '../PermissionWrapper';
 import './Logs.css';
 
-const Logs = ({ onMessage }) => {
+const Logs = ({ onMessage, user }) => {
   const [activeTab, setActiveTab] = useState('webhook');
   const [webhookLogs, setWebhookLogs] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -14,7 +15,9 @@ const Logs = ({ onMessage }) => {
     slug_redirecionamento: '',
     start_date: '',
     end_date: '',
-    search: ''
+    search: '',
+    acao: '',
+    recurso_tipo: ''
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -67,13 +70,21 @@ const Logs = ({ onMessage }) => {
       const endpoint = activeTab === 'webhook' ? '/api/logs/webhook' : '/api/logs/audit';
       const params = new URLSearchParams();
       
+      // Debug: log dos filtros
+      console.log('Filtros atuais:', filters);
+      
       Object.keys(filters).forEach(key => {
         if (filters[key]) {
           params.append(key, filters[key]);
         }
       });
 
-      const response = await api.get(`${endpoint}?${params.toString()}`);
+      const url = `${endpoint}?${params.toString()}`;
+      console.log('URL da requisição:', url);
+      
+      const response = await api.get(url);
+      console.log('Resposta da API:', response.data);
+      
       if (response.data.success) {
         if (activeTab === 'webhook') {
           setWebhookLogs(response.data.data.logs);
@@ -117,7 +128,9 @@ const Logs = ({ onMessage }) => {
       slug_redirecionamento: '',
       start_date: '',
       end_date: '',
-      search: ''
+      search: '',
+      acao: '',
+      recurso_tipo: ''
     });
   };
 
@@ -230,59 +243,58 @@ const Logs = ({ onMessage }) => {
           </thead>
           <tbody>
             {webhookLogs.map((log) => (
-              <tr key={log.id}>
-                <td>{log.id}</td>
-                <td>{formatDate(log.recebido_em)}</td>
-                <td>{getStatusBadge(log.status)}</td>
-                <td>{log.slug_redirecionamento || '-'}</td>
-                <td>{log.destinos_enviados || 0}</td>
-                <td>{log.tempo_resposta || '-'}</td>
-                <td>{log.ip_origem || '-'}</td>
-                <td>
-                  <button 
-                    className="btn btn-sm btn-outline"
-                    onClick={() => toggleExpandedLog(log.id)}
-                  >
-                    {expandedLog === log.id ? 'Ocultar' : 'Ver Detalhes'}
-                  </button>
-                </td>
-              </tr>
+              <React.Fragment key={log.id}>
+                <tr>
+                  <td>{log.id}</td>
+                  <td>{formatDate(log.recebido_em)}</td>
+                  <td>{getStatusBadge(log.status)}</td>
+                  <td>{log.slug_redirecionamento || '-'}</td>
+                  <td>{log.destinos_enviados || 0}</td>
+                  <td>{log.tempo_resposta || '-'}</td>
+                  <td>{log.ip_origem || '-'}</td>
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-outline"
+                      onClick={() => toggleExpandedLog(log.id)}
+                    >
+                      {expandedLog === log.id ? 'Ocultar' : 'Ver Detalhes'}
+                    </button>
+                  </td>
+                </tr>
+                {expandedLog === log.id && (
+                  <tr className="log-detail-row">
+                    <td colSpan="8" className="log-detail-cell">
+                      <div className="log-detail-content">
+                        <h4>Detalhes do Log #{log.id}</h4>
+                        <div className="detail-grid">
+                          <div className="detail-item">
+                            <label>Payload:</label>
+                            <pre>{JSON.stringify(log.payload, null, 2)}</pre>
+                          </div>
+                          {log.mensagem_erro && (
+                            <div className="detail-item">
+                              <label>Mensagem de Erro:</label>
+                              <pre className="error-text">{log.mensagem_erro}</pre>
+                            </div>
+                          )}
+                          <div className="detail-item">
+                            <label>User Agent:</label>
+                            <span>{log.user_agent || '-'}</span>
+                          </div>
+                          <div className="detail-item">
+                            <label>Headers:</label>
+                            <pre>{JSON.stringify(log.headers, null, 2)}</pre>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
-
-      {expandedLog && (
-        <div className="log-details">
-          {webhookLogs
-            .filter(log => log.id === expandedLog)
-            .map(log => (
-              <div key={log.id} className="log-detail-content">
-                <h4>Detalhes do Log #{log.id}</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Payload:</label>
-                    <pre>{JSON.stringify(log.payload, null, 2)}</pre>
-                  </div>
-                  {log.mensagem_erro && (
-                    <div className="detail-item">
-                      <label>Mensagem de Erro:</label>
-                      <pre className="error-text">{log.mensagem_erro}</pre>
-                    </div>
-                  )}
-                  <div className="detail-item">
-                    <label>User Agent:</label>
-                    <span>{log.user_agent || '-'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Headers:</label>
-                    <pre>{JSON.stringify(log.headers, null, 2)}</pre>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      )}
 
       <div className="pagination">
         <button 
@@ -390,57 +402,56 @@ const Logs = ({ onMessage }) => {
           </thead>
           <tbody>
             {auditLogs.map((log) => (
-              <tr key={log.id}>
-                <td>{log.id}</td>
-                <td>{formatDate(log.timestamp)}</td>
-                <td>{log.usuario_id || '-'}</td>
-                <td>{getStatusBadge(log.acao)}</td>
-                <td>{log.recurso_tipo || '-'}</td>
-                <td className="description-cell">{log.descricao || '-'}</td>
-                <td>{log.ip || '-'}</td>
-                <td>
-                  <button 
-                    className="btn btn-sm btn-outline"
-                    onClick={() => toggleExpandedLog(log.id)}
-                  >
-                    {expandedLog === log.id ? 'Ocultar' : 'Ver Detalhes'}
-                  </button>
-                </td>
-              </tr>
+              <React.Fragment key={log.id}>
+                <tr>
+                  <td>{log.id}</td>
+                  <td>{formatDate(log.timestamp)}</td>
+                  <td>{log.usuario_id || '-'}</td>
+                  <td>{getStatusBadge(log.acao)}</td>
+                  <td>{log.recurso_tipo || '-'}</td>
+                  <td className="description-cell">{log.descricao || '-'}</td>
+                  <td>{log.ip || '-'}</td>
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-outline"
+                      onClick={() => toggleExpandedLog(log.id)}
+                    >
+                      {expandedLog === log.id ? 'Ocultar' : 'Ver Detalhes'}
+                    </button>
+                  </td>
+                </tr>
+                {expandedLog === log.id && (
+                  <tr className="log-detail-row">
+                    <td colSpan="8" className="log-detail-cell">
+                      <div className="log-detail-content">
+                        <h4>Detalhes do Log de Auditoria #{log.id}</h4>
+                        <div className="detail-grid">
+                          <div className="detail-item">
+                            <label>User Agent:</label>
+                            <span>{log.user_agent || '-'}</span>
+                          </div>
+                          {log.dados_anteriores && (
+                            <div className="detail-item">
+                              <label>Dados Anteriores:</label>
+                              <pre>{JSON.stringify(log.dados_anteriores, null, 2)}</pre>
+                            </div>
+                          )}
+                          {log.dados_novos && (
+                            <div className="detail-item">
+                              <label>Dados Novos:</label>
+                              <pre>{JSON.stringify(log.dados_novos, null, 2)}</pre>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
-
-      {expandedLog && (
-        <div className="log-details">
-          {auditLogs
-            .filter(log => log.id === expandedLog)
-            .map(log => (
-              <div key={log.id} className="log-detail-content">
-                <h4>Detalhes do Log de Auditoria #{log.id}</h4>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>User Agent:</label>
-                    <span>{log.user_agent || '-'}</span>
-                  </div>
-                  {log.dados_anteriores && (
-                    <div className="detail-item">
-                      <label>Dados Anteriores:</label>
-                      <pre>{JSON.stringify(log.dados_anteriores, null, 2)}</pre>
-                    </div>
-                  )}
-                  {log.dados_novos && (
-                    <div className="detail-item">
-                      <label>Dados Novos:</label>
-                      <pre>{JSON.stringify(log.dados_novos, null, 2)}</pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-        </div>
-      )}
 
       <div className="pagination">
         <button 
@@ -503,12 +514,18 @@ const Logs = ({ onMessage }) => {
         >
           Logs de Webhook
         </button>
-        <button 
-          className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
-          onClick={() => setActiveTab('audit')}
+        <PermissionWrapper 
+          permission="gerenciar_usuarios" 
+          user={user}
+          fallback={null}
         >
-          Logs de Auditoria
-        </button>
+          <button 
+            className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            Logs de Auditoria
+          </button>
+        </PermissionWrapper>
       </div>
 
       {loading && (
@@ -521,7 +538,13 @@ const Logs = ({ onMessage }) => {
       {!loading && (
         <>
           {activeTab === 'webhook' && renderWebhookLogs()}
-          {activeTab === 'audit' && renderAuditLogs()}
+          <PermissionWrapper 
+            permission="gerenciar_usuarios" 
+            user={user}
+            fallback={null}
+          >
+            {activeTab === 'audit' && renderAuditLogs()}
+          </PermissionWrapper>
         </>
       )}
     </div>

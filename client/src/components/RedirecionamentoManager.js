@@ -57,7 +57,7 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
           return {
             ...red,
             urls,
-            destinos: red.destinos || [] // Manter destinos para acesso aos IDs
+            destinos: red.destinos || [] // Manter destinos para acesso aos IDs e estado ativo
           };
         });
         

@@ -59,10 +59,18 @@ router.get('/webhook', async (req, res) => {
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
+    // Debug logs
+    console.log('Webhook logs query params:', req.query);
+    console.log('Where conditions:', whereConditions);
+    console.log('Query params:', queryParams);
+    console.log('Where clause:', whereClause);
+
     // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM logs_webhook ${whereClause}`;
+    console.log('Count query:', countQuery);
     const countResult = await query(countQuery, queryParams);
     const total = parseInt(countResult.rows[0].total);
+    console.log('Total count:', total);
 
     // Get logs with pagination
     const logsQuery = `
@@ -126,8 +134,17 @@ router.get('/webhook', async (req, res) => {
   }
 });
 
-// GET /api/logs/audit - Get audit logs with pagination and filters
+// GET /api/logs/audit - Get audit logs with pagination and filters (admin only)
 router.get('/audit', async (req, res) => {
+  // Verificar se o usuário é administrador
+  if (!req.user || req.user.funcao !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Acesso negado. Apenas administradores podem visualizar logs de auditoria.',
+      code: 'ACCESS_DENIED'
+    });
+  }
+
   try {
     const { 
       page = 1, 
@@ -188,10 +205,18 @@ router.get('/audit', async (req, res) => {
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
+    // Debug logs
+    console.log('Audit logs query params:', req.query);
+    console.log('Where conditions:', whereConditions);
+    console.log('Query params:', queryParams);
+    console.log('Where clause:', whereClause);
+
     // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM audit_log ${whereClause}`;
+    console.log('Count query:', countQuery);
     const countResult = await query(countQuery, queryParams);
     const total = parseInt(countResult.rows[0].total);
+    console.log('Total count:', total);
 
     // Get logs with pagination
     const logsQuery = `

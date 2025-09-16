@@ -33,7 +33,6 @@ router.get('/', requirePermission('visualizar_redirecionamentos'), async (req, r
         ) as destinos
       FROM redirecionamentos r
       LEFT JOIN redirecionamento_destinos rd ON r.id = rd.redirecionamento_id
-      WHERE r.ativo = true
       GROUP BY r.id, r.nome, r.slug, r.descricao, r.ativo, r.criado_em, r.atualizado_em
       ORDER BY r.criado_em DESC
     `);

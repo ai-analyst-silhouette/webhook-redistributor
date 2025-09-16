@@ -141,7 +141,7 @@ function App() {
       case 'usuarios':
         return <Users onMessage={showMessage} user={user} />;
       case 'logs':
-        return <Logs onMessage={showMessage} />;
+        return <Logs onMessage={showMessage} user={user} />;
       case 'help':
         return <HelpPage onBack={() => setCurrentView('redirecionamentos')} />;
       default:

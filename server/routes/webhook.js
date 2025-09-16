@@ -118,7 +118,20 @@ router.post('/:slug', async (req, res) => {
     console.log('Query params:', req.query);
     console.log('==========================================');
 
-    // Log webhook reception
+    // First check if redirecionamento exists before creating log
+    const redirecionamentoCheck = await query('SELECT id FROM redirecionamentos WHERE slug = $1 AND ativo = true', [slug]);
+    
+    if (redirecionamentoCheck.rows.length === 0) {
+      console.log(`❌ Redirecionamento '${slug}' não encontrado ou inativo`);
+      return res.status(404).json({
+        success: false,
+        message: `Redirecionamento '${slug}' não encontrado`,
+        error: 'Redirecionamento não existe ou está inativo',
+        timestamp: toBrazilianTime()
+      });
+    }
+
+    // Log webhook reception only if redirecionamento exists
     const logResult = await query(`
       INSERT INTO logs_webhook (payload, status, destinos_enviados, slug_redirecionamento, tempo_resposta, ip_origem, user_agent, headers)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
