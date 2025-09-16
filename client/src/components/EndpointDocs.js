@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 import './EndpointDocs.css';
 
 const EndpointDocs = () => {
@@ -260,17 +261,12 @@ const EndpointDocs = () => {
               <h3>🔗 URL do Webhook</h3>
               <div className="url-container">
                 <code className="webhook-url">
-                  {process.env.NODE_ENV === 'production' 
-                    ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
-                    : `http://localhost:3001/api/webhook/${selectedEndpoint.slug}`
-                  }
+                  {config.getBackendUrl()}/api/webhook/{selectedEndpoint.slug}
                 </code>
                 <button
                   className="copy-btn"
                   onClick={() => copyToClipboard(
-                    process.env.NODE_ENV === 'production' 
-                      ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${selectedEndpoint.slug}`
-                      : `http://localhost:3001/api/webhook/${selectedEndpoint.slug}`,
+                    `${config.getBackendUrl()}/api/webhook/${selectedEndpoint.slug}`,
                     'url'
                   )}
                 >

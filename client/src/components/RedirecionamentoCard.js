@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api';
+import config from '../config';
 import PermissionWrapper from './PermissionWrapper';
 import StatusIndicator from './StatusIndicator';
 import ToggleSwitch from './ui/ToggleSwitch';
@@ -93,9 +94,8 @@ const RedirecionamentoCard = ({
   };
 
   const getWebhookUrl = () => {
-    return process.env.NODE_ENV === 'production' 
-      ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${redirecionamento.slug}`
-      : `http://localhost:3001/api/webhook/${redirecionamento.slug}`;
+    const baseUrl = config.getBackendUrl();
+    return `${baseUrl}/api/webhook/${redirecionamento.slug}`;
   };
 
   return (

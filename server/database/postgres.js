@@ -7,15 +7,15 @@ const { Pool } = require('pg');
 
 // Configurações do banco PostgreSQL
 const postgresConfig = {
-  user: process.env.POSTGRES_USER || 'postgres',
-  host: process.env.POSTGRES_HOST || 'postgressql.silhouetteexperts.com.br',
-  database: process.env.POSTGRES_DB || 'redistribuidor_webhooks',
-  password: process.env.POSTGRES_PASSWORD || 'wZcW`785fMp?',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  ssl: process.env.POSTGRES_SSL === 'false' ? false : { rejectUnauthorized: false },
-  max: parseInt(process.env.POSTGRES_MAX_CONNECTIONS || '20'), // máximo de conexões no pool
-  idleTimeoutMillis: parseInt(process.env.POSTGRES_IDLE_TIMEOUT || '30000'), // tempo limite para conexões inativas
-  connectionTimeoutMillis: parseInt(process.env.POSTGRES_CONNECTION_TIMEOUT || '2000'), // tempo limite para estabelecer conexão
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'postgressql.silhouetteexperts.com.br',
+  database: process.env.DB_NAME || 'redistribuidor_webhooks',
+  password: process.env.DB_PASSWORD || 'wZcW`785fMp?',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  max: 20, // máximo de conexões no pool
+  idleTimeoutMillis: 30000, // tempo limite para conexões inativas
+  connectionTimeoutMillis: 2000, // tempo limite para estabelecer conexão
 };
 
 // Criar pool de conexões

@@ -163,8 +163,14 @@ const authenticateToken = async (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
   console.log('🔐 authenticateToken - token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'null');
 
+  console.log('🔐 Autenticando token:', {
+    hasAuthHeader: !!authHeader,
+    hasToken: !!token,
+    tokenPreview: token ? token.substring(0, 20) + '...' : null
+  });
+
   if (!token) {
-    console.log('🔐 authenticateToken - NO TOKEN');
+    console.log('❌ Token não fornecido');
     return res.status(401).json({ 
       error: messages.ERROR.MISSING_TOKEN,
       code: 'MISSING_TOKEN'
@@ -173,13 +179,25 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('🔓 Token decodificado:', {
+      userId: decoded.userId,
+      iat: decoded.iat,
+      rememberMe: decoded.rememberMe
+    });
     
     // Verificar se o token não expirou por inatividade
     const now = Date.now();
     const tokenAge = now - (decoded.iat * 1000);
     const maxAge = decoded.rememberMe ? SECURITY_CONFIG.REMEMBER_ME_DURATION : SECURITY_CONFIG.SESSION_TIMEOUT;
     
+    console.log('⏰ Verificando expiração:', {
+      tokenAge,
+      maxAge,
+      isExpired: tokenAge > maxAge
+    });
+    
     if (tokenAge > maxAge) {
+      console.log('❌ Token expirado');
       return res.status(401).json({
         error: 'Sessão expirada. Faça login novamente',
         code: 'SESSION_EXPIRED'
@@ -187,13 +205,26 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Verify user still exists and is active using Portuguese table
+    console.log('👤 Buscando usuário no banco:', decoded.userId);
     const result = await query(
       'SELECT id, nome, email, funcao, ativo FROM usuarios WHERE id = $1 AND ativo = true',
       [decoded.userId]
     );
     
+    console.log('👤 Resultado da busca:', {
+      found: result.rows.length > 0,
+      user: result.rows[0] ? {
+        id: result.rows[0].id,
+        nome: result.rows[0].nome,
+        email: result.rows[0].email,
+        funcao: result.rows[0].funcao,
+        ativo: result.rows[0].ativo
+      } : null
+    });
+    
     const user = result.rows[0];
     if (!user) {
+      console.log('❌ Usuário não encontrado ou inativo');
       return res.status(403).json({ 
         error: messages.ERROR.USER_NOT_FOUND,
         code: 'USER_NOT_FOUND'
@@ -208,19 +239,20 @@ const authenticateToken = async (req, res, next) => {
       role: user.funcao
     };
 
+    console.log('✅ Usuário autenticado:', req.user);
     next();
   } catch (err) {
     console.log('🔐 authenticateToken - ERROR:', err.name, err.message);
     
     if (err.name === 'JsonWebTokenError') {
-      console.log('🔐 authenticateToken - JsonWebTokenError');
+      console.log('❌ Token inválido:', err.message);
       return res.status(403).json({ 
         error: messages.ERROR.INVALID_TOKEN,
         code: 'INVALID_TOKEN'
       });
     }
     
-    console.error('Erro no banco de dados durante autenticação:', err);
+    console.error('❌ Erro no banco de dados durante autenticação:', err);
     return res.status(500).json({ 
       error: messages.ERROR.DATABASE_ERROR,
       code: 'AUTH_ERROR'

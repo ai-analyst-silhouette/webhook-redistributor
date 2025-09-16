@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import config from '../config';
 import './EndpointCard.css';
 
 const EndpointCard = ({ 
@@ -78,10 +79,7 @@ const EndpointCard = ({
           <div className="info-row">
             <span className="label">URL:</span>
             <code className="url">
-              {process.env.NODE_ENV === 'production' 
-                ? `https://redistribuidor-back.silhouetteexperts.com.br/api/webhook/${endpoint.slug}`
-                : `http://localhost:3001/api/webhook/${endpoint.slug}`
-              }
+              {config.getBackendUrl()}/api/webhook/{endpoint.slug}
             </code>
           </div>
 
