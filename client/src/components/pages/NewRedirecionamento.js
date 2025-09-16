@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
+import config from '../../config';
 import ToggleSwitch from '../ui/ToggleSwitch';
 import './NewRedirecionamento.css';
 
@@ -28,23 +29,19 @@ const NewRedirecionamento = ({ onMessage, user, onBack }) => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      
+      if (field === 'nome') {
+        newData.slug = value ? generateSlug(value) : '';
+      }
+      
+      return newData;
+    });
     
-    if (field === 'nome' && !formData.slug) {
-      setFormData(prev => ({
-        ...prev,
-        slug: generateSlug(value)
-      }));
-    }
-    
+    // Limpar erro do campo quando usuário começar a digitar
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -83,11 +80,21 @@ const NewRedirecionamento = ({ onMessage, user, onBack }) => {
     
     if (!formData.slug.trim()) {
       newErrors.slug = 'Slug é obrigatório';
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      newErrors.slug = 'Slug deve conter apenas letras minúsculas, números e hífens';
     }
     
     const validUrls = formData.urls.filter(url => url.trim());
     if (validUrls.length === 0) {
       newErrors.urls = 'Pelo menos uma URL é obrigatória';
+    } else {
+      validUrls.forEach((url, index) => {
+        try {
+          new URL(url);
+        } catch {
+          newErrors[`url-${index}`] = 'URL inválida';
+        }
+      });
     }
     
     setErrors(newErrors);
@@ -104,13 +111,24 @@ const NewRedirecionamento = ({ onMessage, user, onBack }) => {
     setLoading(true);
     
     try {
-      const validUrls = formData.urls.filter(url => url.trim());
+      // Converter URLs para formato de destinos (igual ao EditModal)
+      const destinos = formData.urls
+        .filter(url => url.trim())
+        .map((url, index) => ({
+          nome: `Destino ${index + 1}`,
+          url: url.trim(),
+          ativo: true,
+          ordem: index,
+          timeout: 5000,
+          max_tentativas: 3
+        }));
+
       const redirecionamentoData = {
         ...formData,
-        urls: validUrls
+        destinos
       };
       
-      await api.post('/redirecionamentos', redirecionamentoData);
+      await api.post(config.routes.redirecionamentos, redirecionamentoData);
       onMessage('success', 'Redirecionamento criado com sucesso!');
       
       if (onBack) {

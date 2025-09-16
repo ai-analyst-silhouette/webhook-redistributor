@@ -13,12 +13,14 @@ router.post('/', logEndpointUsage, logEndpointResponse, async (req, res) => {
   let redistributionResults = [];
 
   try {
-    console.log('=== WEBHOOK RECEIVED (DEFAULT REDIRECIONAMENTO) ===');
-    console.log('Timestamp:', toBrazilianTime());
-    console.log('Headers:', req.headers);
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-    console.log('Query params:', req.query);
-    console.log('==========================================');
+    if (process.env.LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
+      console.log('=== WEBHOOK RECEIVED (DEFAULT REDIRECIONAMENTO) ===');
+      console.log('Timestamp:', toBrazilianTime());
+      console.log('Headers:', req.headers);
+      console.log('Body:', JSON.stringify(req.body, null, 2));
+      console.log('Query params:', req.query);
+      console.log('==========================================');
+    }
 
     try {
       // Route to default redirecionamento

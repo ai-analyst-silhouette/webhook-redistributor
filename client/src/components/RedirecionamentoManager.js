@@ -5,6 +5,7 @@ import EditModal from './EditModal';
 import DeleteModal from './DeleteModal';
 import NewRedirecionamentoModal from './NewRedirecionamentoModal';
 import RedirecionamentoCard from './RedirecionamentoCard';
+import TestResultModal from './TestResultModal';
 import PermissionWrapper from './PermissionWrapper';
 import { RedirecionarIcon, RefreshIcon, PlusIcon } from './ui/icons';
 import './RedirecionamentoManager.css';
@@ -17,6 +18,8 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
   const [editingRedirecionamento, setEditingRedirecionamento] = useState(null);
   const [deletingRedirecionamento, setDeletingRedirecionamento] = useState(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [testResults, setTestResults] = useState(null);
+  const [showTestResults, setShowTestResults] = useState(false);
   const hasLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -40,11 +43,23 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       const response = await api.get(config.routes.redirecionamentos);
       
       if (response.data.success) {
-        // Converter destinos para URLs para compatibilidade com UI atual
-        const redirecionamentosCompativeis = response.data.data.map(red => ({
-          ...red,
-          urls: red.destinos ? red.destinos.map(destino => destino.url) : []
-        }));
+        // Debug: ver o que vem do backend
+        console.log('Backend response:', response.data.data);
+        
+        // Converter destinos para URLs para compatibilidade com UI atual, mas manter destinos originais
+        const redirecionamentosCompativeis = response.data.data.map(red => {
+          console.log('Convertendo redirecionamento:', red);
+          console.log('red.destinos:', red.destinos);
+          
+          const urls = red.destinos ? red.destinos.map(destino => destino.url) : [];
+          console.log('URLs convertidas:', urls);
+          
+          return {
+            ...red,
+            urls,
+            destinos: red.destinos || [] // Manter destinos para acesso aos IDs
+          };
+        });
         
         setRedirecionamentos(redirecionamentosCompativeis);
         if (!hasLoadedRef.current) {
@@ -82,10 +97,11 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
   };
 
   const handleRedirecionamentoAdded = (newRedirecionamento) => {
-    // Converter destinos para URLs para compatibilidade com UI atual
+    // Converter destinos para URLs para compatibilidade com UI atual, mas manter destinos originais
     const redirecionamentoCompativel = {
       ...newRedirecionamento,
-      urls: newRedirecionamento.destinos ? newRedirecionamento.destinos.map(destino => destino.url) : []
+      urls: newRedirecionamento.destinos ? newRedirecionamento.destinos.map(destino => destino.url) : [],
+      destinos: newRedirecionamento.destinos || [] // Manter destinos para acesso aos IDs
     };
     
     setRedirecionamentos(prev => [redirecionamentoCompativel, ...prev]);
@@ -93,10 +109,11 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
   };
 
   const handleRedirecionamentoUpdated = (updatedRedirecionamento) => {
-    // Converter destinos para URLs para compatibilidade com UI atual
+    // Converter destinos para URLs para compatibilidade com UI atual, mas manter destinos originais
     const redirecionamentoCompativel = {
       ...updatedRedirecionamento,
-      urls: updatedRedirecionamento.destinos ? updatedRedirecionamento.destinos.map(destino => destino.url) : []
+      urls: updatedRedirecionamento.destinos ? updatedRedirecionamento.destinos.map(destino => destino.url) : [],
+      destinos: updatedRedirecionamento.destinos || [] // Manter destinos para acesso aos IDs
     };
     
     setRedirecionamentos(prev => 
@@ -233,20 +250,32 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
       const token = localStorage.getItem('authToken') ;
       
       const response = await api.post(`${config.routes.redirecionamentos}/${id}/testar`, {
-        teste: 'webhook de teste',
-        timestamp: new Date().toISOString()
+        payload: {
+          teste: 'webhook de teste',
+          timestamp: new Date().toISOString(),
+          source: 'interface-web'
+        }
       }, {
         headers: {
         }
       });
       
       if (response.data.success) {
-        const results = response.data.results;
-        const successful = results.filter(r => r.success).length;
-        const total = results.length;
-        onMessage('success', `Teste concluído: ${successful}/${total} URLs funcionando`);
+        const data = response.data.data;
+        const results = data.results || [];
+        const statistics = data.statistics || {};
+        
+        console.log('Resultados do teste:', data);
+        
+        // Armazenar resultados e mostrar modal
+        setTestResults(data);
+        setShowTestResults(true);
+        
+        // Mostrar estatísticas gerais na notificação
+        const successMessage = `Teste concluído: ${statistics.successful || 0}/${statistics.total || 0} destinos funcionando (${statistics.successRate || 0}% sucesso)`;
+        onMessage('success', successMessage);
       } else {
-        throw new Error(response.data.message);
+        throw new Error(response.data.message || 'Resposta de sucesso inválida');
       }
     } catch (error) {
       console.error('Erro ao testar redirecionamento:', error);
@@ -262,7 +291,20 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
         errorMessage = error.message;
       }
       
+      // Se for erro específico de backend, tentar mostrar mais detalhes
+      if (error.response?.status) {
+        errorMessage += ` (HTTP ${error.response.status})`;
+      }
+      
       onMessage('error', errorMessage);
+      
+      // Log completo para debug
+      console.error('Erro completo:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        stack: error.stack
+      });
     } finally {
       setActionLoading(prev => ({ ...prev, [`test-${id}`]: false }));
     }
@@ -381,6 +423,16 @@ const RedirecionamentoManager = ({ onMessage, user, onRef }) => {
           ))}
         </div>
       )}
+
+      {/* Modal de Resultados de Teste */}
+      <TestResultModal
+        isOpen={showTestResults}
+        onClose={() => {
+          setShowTestResults(false);
+          setTestResults(null);
+        }}
+        testResults={testResults}
+      />
     </div>
   );
 };

@@ -31,26 +31,28 @@ const DeleteModal = ({
 
         <div className="modal-content">
           <p className="warning-text">
-            Tem certeza que deseja excluir o redirecionamento:
+            Tem certeza que deseja excluir este redirecionamento?
           </p>
           
           <div className="redirecionamento-info">
             <h4>{redirecionamento.nome}</h4>
-            <p className="slug-info">
-              <strong>Slug:</strong> {redirecionamento.slug}
-            </p>
-            <p className="url-info">
-              <strong>URLs de destino:</strong> {redirecionamento.urls 
-                ? (Array.isArray(redirecionamento.urls) 
-                    ? redirecionamento.urls.length 
-                    : redirecionamento.urls.split(',').filter(url => url.trim()).length)
-                : 0}
-            </p>
+            <div className="slug-info">
+              <strong>Slug:</strong> <span>{redirecionamento.slug}</span>
+            </div>
+            <div className="url-info">
+              <strong>Destinos:</strong> <span>{redirecionamento.destinos 
+                ? redirecionamento.destinos.length 
+                : (redirecionamento.urls 
+                    ? (Array.isArray(redirecionamento.urls) 
+                        ? redirecionamento.urls.length 
+                        : redirecionamento.urls.split(',').filter(url => url.trim()).length)
+                    : 0)} URL(s) configurada(s)</span>
+            </div>
           </div>
 
           <div className="warning-message">
-            <p>⚠️ <strong>Atenção:</strong> Esta ação não pode ser desfeita!</p>
-            <p>O redirecionamento será permanentemente removido do sistema.</p>
+            <p><strong>⚠️ Atenção:</strong> Esta ação não pode ser desfeita!</p>
+            <p>O redirecionamento será permanentemente removido do sistema e todos os webhooks direcionados para este endpoint deixarão de funcionar.</p>
           </div>
         </div>
 
@@ -60,7 +62,7 @@ const DeleteModal = ({
             onClick={onClose}
             className="btn btn-secondary"
           >
-            Cancelar
+            🚫 Cancelar
           </button>
           <button
             type="button"
@@ -70,7 +72,7 @@ const DeleteModal = ({
             }}
             className="btn btn-danger"
           >
-            Excluir Redirecionamento
+            🗑️ Excluir Redirecionamento
           </button>
         </div>
       </div>

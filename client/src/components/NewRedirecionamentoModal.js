@@ -35,8 +35,8 @@ const NewRedirecionamentoModal = ({
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
-      if (field === 'nome' && value) {
-        newData.slug = generateSlug(value);
+      if (field === 'nome') {
+        newData.slug = value ? generateSlug(value) : '';
       }
       
       return newData;
@@ -77,6 +77,8 @@ const NewRedirecionamentoModal = ({
 
     if (!formData.slug.trim()) {
       newErrors.slug = 'Slug é obrigatório';
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      newErrors.slug = 'Slug deve conter apenas letras minúsculas, números e hífens';
     }
 
     const validUrls = formData.urls.filter(url => url.trim());
@@ -89,7 +91,7 @@ const NewRedirecionamentoModal = ({
       try {
         new URL(url);
       } catch {
-        newErrors[`url_${index}`] = 'URL inválida';
+        newErrors[`url-${index}`] = 'URL inválida';
       }
     });
 
@@ -109,11 +111,21 @@ const NewRedirecionamentoModal = ({
     try {
       const token = localStorage.getItem('authToken') ;
       
+      // Converter URLs para formato de destinos (igual ao EditModal)
+      const destinos = formData.urls
+        .filter(url => url.trim())
+        .map((url, index) => ({
+          nome: `Destino ${index + 1}`,
+          url: url.trim(),
+          ativo: true,
+          ordem: index,
+          timeout: 5000,
+          max_tentativas: 3
+        }));
+
       const payload = {
         ...formData,
-        urls: formData.urls
-          .filter(url => url.trim())
-          .map(url => ({ url: url.trim(), ativo: true }))
+        destinos
       };
 
       const response = await api.post(config.routes.redirecionamentos, payload, {
@@ -222,7 +234,7 @@ const NewRedirecionamentoModal = ({
                   type="url"
                   value={url}
                   onChange={(e) => handleUrlChange(index, e.target.value)}
-                  className={`form-input ${errors[`url_${index}`] ? 'error' : ''}`}
+                  className={`form-input ${errors[`url-${index}`] ? 'error' : ''}`}
                   placeholder="https://exemplo.com/webhook"
                   disabled={loading}
                 />
@@ -236,8 +248,8 @@ const NewRedirecionamentoModal = ({
                     <CloseIcon />
                   </IconButton>
                 )}
-                {errors[`url_${index}`] && (
-                  <span className="error-message">{errors[`url_${index}`]}</span>
+                {errors[`url-${index}`] && (
+                  <span className="error-message">{errors[`url-${index}`]}</span>
                 )}
               </div>
             ))}

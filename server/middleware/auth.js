@@ -154,10 +154,17 @@ const apiRateLimiter = rateLimit({
  * Verifies the token and adds user information to the request object
  */
 const authenticateToken = async (req, res, next) => {
+  console.log('🔐 authenticateToken - req.url:', req.url);
+  console.log('🔐 authenticateToken - req.method:', req.method);
+  
   const authHeader = req.headers['authorization'];
+  console.log('🔐 authenticateToken - authHeader:', authHeader);
+  
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  console.log('🔐 authenticateToken - token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'null');
 
   if (!token) {
+    console.log('🔐 authenticateToken - NO TOKEN');
     return res.status(401).json({ 
       error: messages.ERROR.MISSING_TOKEN,
       code: 'MISSING_TOKEN'
@@ -203,7 +210,10 @@ const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (err) {
+    console.log('🔐 authenticateToken - ERROR:', err.name, err.message);
+    
     if (err.name === 'JsonWebTokenError') {
+      console.log('🔐 authenticateToken - JsonWebTokenError');
       return res.status(403).json({ 
         error: messages.ERROR.INVALID_TOKEN,
         code: 'INVALID_TOKEN'

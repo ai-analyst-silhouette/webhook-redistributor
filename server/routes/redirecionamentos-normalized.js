@@ -113,7 +113,7 @@ router.get('/:id', requirePermission('visualizar_redirecionamentos'), async (req
  * POST /api/redirecionamentos
  * Criar novo redirecionamento com destinos
  */
-router.post('/', requirePermission('criar_redirecionamentos'), auditLog('criar_redirecionamento', 'Criando novo redirecionamento', 'redirecionamento'), async (req, res) => {
+router.post('/', requirePermission('criar_redirecionamento'), auditLog('criar_redirecionamento', 'Criando novo redirecionamento', 'redirecionamento'), async (req, res) => {
   try {
     const { nome, slug, descricao, destinos = [], ativo = true } = req.body;
     
@@ -227,7 +227,7 @@ router.post('/', requirePermission('criar_redirecionamentos'), auditLog('criar_r
  * PUT /api/redirecionamentos/:id
  * Atualizar redirecionamento e seus destinos
  */
-router.put('/:id', requirePermission('editar_redirecionamentos'), auditLog('editar_redirecionamento', 'Atualizando redirecionamento', 'redirecionamento'), async (req, res) => {
+router.put('/:id', requirePermission('editar_redirecionamento'), auditLog('editar_redirecionamento', 'Atualizando redirecionamento', 'redirecionamento'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, slug, descricao, destinos, ativo } = req.body;
@@ -445,10 +445,152 @@ router.patch('/:id/destinos/:destinoId/toggle', requirePermission('editar_redire
 });
 
 /**
+ * POST /api/redirecionamentos/:id/testar
+ * Testar redirecionamento - envia webhook de teste para todos os destinos ativos
+ */
+router.post('/:id/testar', requirePermission('testar_redirecionamento'), auditLog('testar_redirecionamento', 'Testando redirecionamento', 'redirecionamento'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { payload = { teste: 'webhook de teste', timestamp: new Date().toISOString() } } = req.body;
+    
+    // Buscar redirecionamento com destinos
+    const result = await query(`
+      SELECT 
+        r.id, r.nome, r.slug, r.descricao, r.ativo,
+        COALESCE(
+          JSON_AGG(
+            CASE WHEN rd.id IS NOT NULL THEN
+              JSON_BUILD_OBJECT(
+                'id', rd.id,
+                'nome', rd.nome,
+                'url', rd.url,
+                'ativo', rd.ativo,
+                'ordem', rd.ordem,
+                'timeout', rd.timeout,
+                'max_tentativas', rd.max_tentativas
+              )
+            END
+            ORDER BY rd.ordem
+          ) FILTER (WHERE rd.id IS NOT NULL AND rd.ativo = true), 
+          '[]'::json
+        ) as destinos
+      FROM redirecionamentos r
+      LEFT JOIN redirecionamento_destinos rd ON r.id = rd.redirecionamento_id
+      WHERE r.id = $1 AND r.ativo = true
+      GROUP BY r.id, r.nome, r.slug, r.descricao, r.ativo
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Redirecionamento não encontrado ou está inativo',
+        code: 'NOT_FOUND'
+      });
+    }
+
+    const redirecionamento = result.rows[0];
+    const destinos = redirecionamento.destinos || [];
+
+    if (destinos.length === 0) {
+      return res.status(400).json({
+        error: 'Redirecionamento não possui destinos ativos configurados',
+        code: 'NO_ACTIVE_DESTINATIONS'
+      });
+    }
+
+    // Testar cada destino
+    const axios = require('axios');
+    const testResults = [];
+    
+    for (let i = 0; i < destinos.length; i++) {
+      const destino = destinos[i];
+      const startTime = Date.now();
+      
+      try {
+        const response = await axios.post(destino.url, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Webhook-Redistributor-Test/1.0',
+            'X-Test-At': new Date().toISOString(),
+            'X-Test-From': 'webhook-redistributor',
+            'X-Test-Redirecionamento': redirecionamento.slug
+          },
+          timeout: destino.timeout || 5000
+        });
+        
+        const responseTime = Date.now() - startTime;
+        testResults.push({
+          destino: {
+            id: destino.id,
+            nome: destino.nome,
+            url: destino.url
+          },
+          success: true,
+          status: response.status,
+          statusText: response.statusText,
+          responseTime,
+          responseData: response.data,
+          headers: response.headers
+        });
+        
+      } catch (error) {
+        const responseTime = Date.now() - startTime;
+        testResults.push({
+          destino: {
+            id: destino.id,
+            nome: destino.nome,
+            url: destino.url
+          },
+          success: false,
+          error: error.message,
+          responseTime,
+          status: error.response?.status || 0,
+          statusText: error.response?.statusText || 'Network Error'
+        });
+      }
+    }
+
+    // Calcular estatísticas
+    const successful = testResults.filter(r => r.success).length;
+    const failed = testResults.filter(r => !r.success).length;
+    const avgResponseTime = testResults.reduce((sum, r) => sum + r.responseTime, 0) / testResults.length;
+
+    res.json({
+      success: true,
+      message: 'Teste de redirecionamento concluído',
+      data: {
+        redirecionamento: {
+          id: redirecionamento.id,
+          nome: redirecionamento.nome,
+          slug: redirecionamento.slug
+        },
+        results: testResults,
+        statistics: {
+          total: testResults.length,
+          successful,
+          failed,
+          successRate: (successful / testResults.length * 100).toFixed(1),
+          avgResponseTime: Math.round(avgResponseTime)
+        },
+        payload: payload,
+        testedAt: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao testar redirecionamento:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor ao testar redirecionamento',
+      code: 'TEST_ERROR',
+      message: error.message
+    });
+  }
+});
+
+/**
  * DELETE /api/redirecionamentos/:id
  * Excluir redirecionamento (e todos os destinos via CASCADE)
  */
-router.delete('/:id', requirePermission('excluir_redirecionamentos'), auditLog('excluir_redirecionamento', 'Excluindo redirecionamento', 'redirecionamento'), async (req, res) => {
+router.delete('/:id', requirePermission('excluir_redirecionamento'), auditLog('excluir_redirecionamento', 'Excluindo redirecionamento', 'redirecionamento'), async (req, res) => {
   const { id } = req.params;
 
   try {

@@ -16,10 +16,16 @@ const RedirecionamentoCard = ({
   actionLoading,
   user
 }) => {
+  // Debug: ver o que está chegando
+  console.log('RedirecionamentoCard - redirecionamento.urls:', redirecionamento.urls);
+  console.log('RedirecionamentoCard - type:', typeof redirecionamento.urls);
+  
   // Converter string de URLs em array se necessário
   const urlsArray = Array.isArray(redirecionamento.urls) 
     ? redirecionamento.urls 
     : (redirecionamento.urls || '').split(',').map(url => url.trim()).filter(url => url);
+    
+  console.log('RedirecionamentoCard - urlsArray:', urlsArray);
 
   // Estado para controlar quais URLs estão ativas
   const [activeUrls, setActiveUrls] = useState(() => {
@@ -41,12 +47,27 @@ const RedirecionamentoCard = ({
     try {
       const token = localStorage.getItem('authToken') ;
       
-      const response = await api.patch(`/api/redirecionamentos/${redirecionamento.id}/urls/${urlIndex}/toggle`, {
-        ativo: newStatus
-      }, {
-        headers: {
-        }
-      });
+      // Verificar se temos destinos com IDs
+      let response;
+      if (redirecionamento.destinos && redirecionamento.destinos[urlIndex]) {
+        const destinoId = redirecionamento.destinos[urlIndex].id;
+        
+        // Usar novo endpoint com ID do destino
+        response = await api.patch(`/api/redirecionamentos/${redirecionamento.id}/destinos/${destinoId}/toggle`, {
+          ativo: newStatus
+        }, {
+          headers: {
+          }
+        });
+      } else {
+        // Fallback para endpoint antigo se não tiver destinos com IDs
+        response = await api.patch(`/api/redirecionamentos/${redirecionamento.id}/urls/${urlIndex}/toggle`, {
+          ativo: newStatus
+        }, {
+          headers: {
+          }
+        });
+      }
       
       if (response.data.success) {
         setActiveUrls(prev => ({

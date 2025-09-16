@@ -39,7 +39,10 @@ app.set('trust proxy', 1);
 // CORS configuration for production
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://redistribuidor-front.silhouetteexperts.com.br', 'https://redistribuidor-back.silhouetteexperts.com.br']
+    ? [
+        process.env.FRONTEND_URL || 'https://redistribuidor-front.silhouetteexperts.com.br',
+        process.env.BACKEND_URL || 'https://redistribuidor-back.silhouetteexperts.com.br'
+      ]
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -50,6 +53,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Log todas as requisições para debug (controlado por LOG_LEVEL)
+app.use((req, res, next) => {
+  if (process.env.LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
+    console.log(`📝 REQUEST: ${req.method} ${req.path}`);
+    console.log(`📝 Headers:`, req.headers);
+  }
+  next();
+});
 
 // Apply rate limiting to all API routes
 app.use('/api', apiRateLimiter);
